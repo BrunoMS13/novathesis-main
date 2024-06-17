@@ -1,0 +1,236 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter2.tex
+%% NOVA thesis document file
+%%
+%% Chapter with the template manual
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE chapter2.tex}%
+
+\chapter{Fundamental Concepts}
+\label{cha:concepts}
+
+In this section we aim to introduce some of the concepts that are relevant to the work
+presented in this thesis. These concepts include Machine Learning techniques,
+mainly toward Supervised Learning, and the subject of study which is the fire risk
+classification.
+
+\section{Machine Learning}
+
+Machine Learning (ML) is a field of study in computer science that utilizes
+statistical techniques to enable computer systems to learn from data, recognize
+patterns, and make predictions on new data. ML is broadly categorized into
+supervised and unsupervised learning \ref{fig:ml-tree}. The choice between these categories
+depends on the problem at hand; supervised learning is used when labeled
+data is available, while unsupervised learning is used for finding hidden
+patterns in unlabeled data.
+
+In our case, supervised learning is more suitable, as we aim to classify
+vegetation risk based on labeled aerial photographs/satellite imagery
+in accordance with ADAI's risk classification standards, which is considered
+a image classification problem.
+%A detailed taxonomy and overview of various ML algorithms and their aspects can be seen in Figure 2.1.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/MLTaxonomy.drawio.png}
+    \caption{Machine Learning taxonomy.}
+    \label{fig:ml-tree}
+\end{figure}
+
+When discussing ML, it is essential to address feature extraction, normalization,
+and standardization.
+
+Feature extraction involves identifying and extracting the most relevant
+features from the data. Techniques such as Principal Component Analysis
+(PCA) and Convolutional Neural Networks (CNNs) are commonly used for
+this purpose. In the context of satellite/aerial imagery, important features
+might include vegetation indices, texture, and spectral bands. These
+features help in distinguishing different vegetation types and their
+associated fire risks.
+
+Normalization and standardization are crucial steps in ML, particularly
+when dealing with diverse data types and scales. For satellite imagery,
+features can vary significantly in scale, which can pose challenges for
+classification algorithms. Without normalization or standardization,
+certain features might disproportionately influence the classification
+process, leading to suboptimal results. Normalization ensures that each
+feature contributes equally to the model, improving the accuracy and
+robustness of the classifier.
+
+\subsection{Supervised Learning}
+
+Supervised Learning (SL) is a type of machine learning where the model is trained
+on a labeled dataset. The model learns to map input data to the correct output
+by minimizing the error between the predicted and actual values. The goal of
+supervised learning is to generalize from the training data to make accurate
+predictions on new, unseen data \cite{geeksforgeeks_supervised_learning}.
+
+In supervised learning, the dataset is divided into two parts: the training set
+and the test set. The training set is used to train the model, while the test
+set is used to evaluate the model's performance on unseen data. The model is
+trained by adjusting its parameters to minimize the error between the predicted
+and actual values on the training set. Once the model is trained, it is evaluated
+on the test set to assess its performance and generalization capabilities.
+
+There are two main types of supervised learning: regression and classification.
+In regression, the goal is to predict a continuous value
+based on input features. For example, predicting house prices based on features
+such as location, size, and number of rooms is a regression problem.
+
+In classification, the goal is to predict a discrete
+class label based on input features. For example, our problem at hand, classifying
+house fire risk based on the surrounding vegetation features, is a classification problem.
+
+To evaluate the performance of a supervised learning model, various metrics
+are used, such as accuracy, precision, recall, and F1 score. These
+metrics help in assessing the model's performance, identifying areas for improvement,
+and comparing different models.
+
+The accuracy of a model is the proportion of correct predictions to the total number
+of predictions \eqref{eq:accuracy}. It is a simple and intuitive metric but can be misleading when
+dealing with imbalanced datasets. Precision measures the proportion of true positive
+predictions to the total number of positive predictions \eqref{eq:precision}. It is useful when the cost
+of false positives is high. Recall, also known as sensitivity, measures the proportion
+of true positive predictions to the total number of actual positive instances \eqref{eq:recall}. It is
+useful when the cost of false negatives is high. The F1 score is the harmonic mean of
+precision and recall \eqref{eq:f1} and provides a balance between the two metrics \cite{vidalwadi2024}.
+
+\begin{equation}
+    Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
+    \label{eq:accuracy}
+\end{equation}
+
+\begin{equation}
+    Precision = \frac{TP}{TP + FP}
+    \label{eq:precision}
+\end{equation}
+
+\begin{equation}
+    Recall = \frac{TP}{TP + FN}
+    \label{eq:recall}
+\end{equation}
+
+\begin{equation}
+    F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
+    \label{eq:f1}
+\end{equation}
+
+
+\subsection{Deep Learning}
+
+Deep Learning (DL) is a specialized subset of machine learning that makes use of
+artificial neural networks to identify intricate patterns within large datasets.
+Unlike traditional machine learning algorithms, DL algorithms can learn directly
+from raw data, automatically extract features, and make highly accurate predictions.
+This capability has significantly contributed to various fields, including computer vision,
+natural language processing, and speech recognition.
+
+DL models consist of multiple layers of artificial neurons that process
+input data and learn hierarchical representations of this data. The most prevalent
+type of deep learning model is the deep neural network, which is structured with an
+input layer, one or more hidden layers, and an output layer \ref{fig:dnn-example}. Each layer contains
+numerous neurons that perform computations on the input data and pass the results
+to the subsequent layer. The hidden layers are responsible for learning progressively
+complex features of the data, whereas the output layer generates the final prediction.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/DNN.png}
+    \caption{Deep Neural Network Example.}
+    \label{fig:dnn-example}
+\end{figure}
+
+The flexibility and power of deep neural networks make them highly suitable for a
+variety of complex tasks. However, when it comes to image data, a specific type of
+deep learning model, known as Convolutional Neural Networks (CNNs), has proven to
+be exceptionally effective.
+
+\subsubsection{Convolutional Neural Networks (CNNs)}
+
+Convolutional Neural Networks (CNNs) are a type of deep neural network that
+is particularly well-suited for image classification tasks. \cite{rs-survey-cnns} CNNs are designed
+to automatically learn spatial hierarchies of features from images, making them
+ideal for tasks such as object detection, image segmentation, and facial recognition.
+
+In the context of the project, our goal is to classify the fire risk of isolated houses
+based on parameters like the proximity and type of surrouding vegetation. This requires
+identifying specific objects such as the house and the distance between the house and
+the specific types of vegetation. CNNs are well-suited for this task due to their ability
+to automatically learn and detect spatial features from images.
+
+
+\section{Subject of Study}
+
+The ADAI conducted a study on the characterization of vegetation management
+within the immediate surroundings (<50m) of isolated houses in Continental
+Portugal. The evaluation was based on satellite images from 2018 to 2020. This study focuses
+primarily on the surroundings as a means of fire propagation, considering
+only the structure of the existing vegetation, and excluding other factors
+such as orography. The natural fuels can be classified as spontaneous or
+non-spontaneous. Spontaneous fuels are those found in wildlands, while
+non-spontaneous fuels originate from human activities, such as lawns, gardens,
+or vegetable plots.
+The natural fuels included in this study for fire risk classification are
+categorized into three groups: arboreal, shrub, and herbaceous.
+
+\subsection{Fire Risk Assessment}
+The study defined five categories of fire risk: low, moderate, high, very high,
+and extreme. Given the heterogeneity of vegetation around the houses, the
+determination of distance involved several categories: trees, bushes, herbaceous
+plants, and continuous forest. The distance between the main building and
+vegetation was measured for each of these categories, always considering
+the nearest distance for each.
+
+Only vegetation that poses an effective fire risk was considered. For instance,
+well-maintained and watered lawns were excluded from this analysis as they do
+not have the capacity to propagate fire.
+
+The following figure \ref{fig:fire-risk-table} shows the classification of fire risk based on the distance
+between the vegetation and the main building:
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{../Figures/FireRiskClassificationTable.png}
+    \caption{Description of the characteristics of the immediate surroundings of the house and their relationship with the risk categories.}
+    \label{fig:fire-risk-table}
+\end{figure}
+
+
+\section{Data Collection}
+The labeled dataset provided by ADAI consists of over 2000 isolated houses manually
+classified into five fire risk categories, which will be used as the ground truth for
+our model. This dataset also includes the coordinates of the respective houses, which
+will be used to extract the aerial imagery.
+
+The DGT (Direção-Geral do Território) offers an open data section with a variety of
+datasets, including aerial photographs of Continental Portugal from 2018 and 2021,
+coinciding with the time period of the ADAI classification study \cite{almeida2020analise}.
+Since the 2021 dataset is incomplete, we will use the 2018 dataset for our study.
+These orthophotos have a high resolution of 25 cm/pixel, which will be beneficial
+for accurately extracting vegetation. Additionally, the images are available in
+both RGB and IRG formats. The IRG format is particularly useful for extracting
+vegetation indices, as vegetation appears in shades of red, making it more easily
+identifiable. The following figures represent two examples of the same aerial photograph
+in RGB and IRG \ref{fig:rgb-irg-comparison}.
+
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/houseExampleRGB.png}
+        \caption{RGB format}
+        \label{fig:rgb}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/houseExampleIRG.png}
+        \caption{IRG format}
+        \label{fig:irg}
+    \end{minipage}
+    \caption{Aerial photographs of the same location in RGB and IRG formats respectively.}
+    \label{fig:rgb-irg-comparison}
+\end{figure}
