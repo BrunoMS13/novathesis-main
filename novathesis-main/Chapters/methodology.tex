@@ -1,0 +1,284 @@
+\typeout{NT FILE methodology.tex}%
+
+
+\chapter{Methodology}
+\label{cha:methodology}
+
+In this chapter, we explain the methodology used in the development of this work. We begin 
+by detailing how the data was obtained and the logic behind its selection. Additionally, we 
+present the data augmentation techniques applied to the dataset and describe the methodology 
+employed in training the models.
+
+\section{Data Collection}
+The \gls{dgt} has conducted an extensive aerial photogrammetric survey of Continental Portugal. 
+This initiative resulted in the creation of orthophotos from 2018 to 2021, providing a high-resolution 
+dataset suitable for geographic and environmental analysis.
+
+\subsection{Technical Specifications}
+The orthophotos possess the following characteristics:
+
+\begin{itemize}
+    \item \textbf{Spatial Resolution:} 25 cm/pixel.
+    \item \textbf{Spectral Resolution:} Four-band imagery including Red, Green, Blue (RGB) and Near Infrared (NIR), particularly useful for vegetation analysis.
+    \item \textbf{Geographic Coverage:} The entirety of Continental Portugal.
+    \item \textbf{Reference System:} 
+        \begin{itemize}
+            \item \textbf{EPSG:3763} - Projected coordinate system optimized for accurate distance measurements, ideal for mapping, surveying, and GIS applications in Portugal.
+            \item \textbf{EPSG:4258} - Geographic coordinate system primarily used for geodetic applications and alignment across Europe.
+        \end{itemize}
+\end{itemize}
+
+The orthophotos are publicly accessible through a Web Map Tile Service (WMTS), allowing 
+seamless integration into research and application development. Our dataset consists of 
+RGB and IRG orthophotos extracted from this open data source. To facilitate extraction,
+we developed a Python module that retrieves images based on bounding box coordinates encompassing 
+residential locations within the dataset. A total of 1929 RGB and IRG images were utilized.
+
+For the fire risk assessment, we defined a 62.5-meter radius to ensure that the assessment 
+covers houses within at least 50 meters. The remaining 12.5 meters accounts for the houses 
+themselves. This is, of course, an approximation, as houses vary in shape and size. 
+Consequently, each data entry is represented as a 500x500 pixel image.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/houseExampleRGB.png}
+        \caption{Aerial photograph \gls{rgb} format}
+        \label{fig:rgb}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/houseExampleIRG.png}
+        \caption{Aerial photograph \gls{irg} format}
+        \label{fig:irg}
+    \end{minipage}
+    \caption{Aerial photographs of the same location in \gls{rgb} and \gls{irg} formats respectively.}
+    \label{fig:rgb-irg-comparison}
+\end{figure}
+
+\section{Data Augmentation}
+To enhance the dataset, we applied various data augmentation techniques. These augmentations 
+introduce diversity to the dataset, improving the model's generalization ability and mitigating 
+overfitting, a crucial factor given the dataset's relatively small size and the complexity of 
+the problem. Without augmentation, the models risk memorizing training data rather than learning 
+underlying patterns. Given the complexity of the classification task, more advanced models are required 
+to capture the intricate relationships in the data. However, these complex models have a higher 
+capacity and tend to overfit more easily when trained on a small dataset. Instead of generalizing 
+to unseen data, they start memorizing specific details of the training images, leading to poor 
+performance on new samples. By applying data augmentation, we introduce variations that help the 
+model learn robust features instead of relying on exact memorization.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Augmentation} & \textbf{Parameters} \\
+        \hline
+        Random Horizontal Flip & Probability: 50\% \\
+        \hline
+        Random Vertical Flip & Probability: 50\% \\
+        \hline
+        Random Rotation  & Range: $[-30^{\circ},30^{\circ}]$ \\
+        \hline
+        Random Brightness Adjustment & Range: $[-20\%,20\%]$ \\
+        \hline
+    \end{tabular}
+    \caption{Data augmentation techniques applied to the dataset.}
+    \label{tab:augmentations}
+\end{table}
+
+As shown in Table \ref{tab:augmentations}, we applied four different augmentation techniques 
+\cite{torchvision2016}. Horizontal and vertical flips
+were applied with a probability of 50\%, ensuring that vegetation appears in different 
+orientations relative to the house. Random rotations within a $[-30^{\circ}, 30^{\circ}]$ 
+range further increase variability, enabling the model to better recognize patterns. Additionally, 
+random brightness adjustment within $[-20\%, 20\%]$ was introduced to account for variations 
+in lighting conditions, as images were captured at different times of the day and under varying cloud cover.
+
+The impact of brightness variation can be observed in Figure \ref{fig:dark-bright-comparison}.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/darker_house_image.png}
+        \caption{Aerial photograph \gls{rgb} format}
+        \label{fig:darker}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/brighter_house_image.png}
+        \caption{Aerial photograph \gls{irg} format}
+        \label{fig:brighter}
+    \end{minipage}
+    \caption{Aerial photographs without augmentation from Coimbra and Portalegre respectively, taken at different days.}
+    \label{fig:dark-bright-comparison}
+\end{figure}
+
+It is important to note that although the same augmentation techniques are applied to both 
+RGB and IRG images, their application remains random during training. Consequently, no two 
+training instances are identical. Additionally, some augmentation parameters, such as brightness 
+variation, may behave differently between the two formats, further increasing dataset variability.
+
+
+
+
+\section{Training, validation and testing.}
+
+In this section it will be explained the methodology behind the training, validation and testing of the
+chosen models, leaving the discussion of the results for a different chapter.
+
+\subsection{Environment Setup}
+
+To ensure a stable and reproducible training environment, we utilized Poetry \cite{poetry2023} for 
+dependency management and a Docker \cite{docker2023} container with CUDA support for execution 
+on the NOVA DI-Cluster. This approach allows for efficient resource management while leveraging GPU acceleration
+for faster training.
+
+The training was performed on the \textit{alakazam} nodes of the cluster, which are equipped with
+the following specifications:
+
+\begin{itemize}
+    \item \textbf{CPU:} Dual AMD EPYC 9124 (64 threads total)
+    \item \textbf{GPU:} NVIDIA L4 (23GB VRAM, CUDA 12.0)
+    \item \textbf{Memory:} 251GB RAM
+\end{itemize}
+
+The Docker container accepts several command-line arguments that allow for flexible 
+control over the training process, some of the most important and used are:
+
+\begin{itemize}
+    \item \texttt{--train} and \texttt{--test}: Specify whether to train a new model or evaluate an existing one.
+    \item \texttt{--algorithm}: Choose the model architecture to train or test.
+    \item \texttt{--num\_epochs} and \texttt{--batch\_size}: Define the number of training epochs and batch size per iteration.
+    \item \texttt{--lr} and \texttt{--wd}: Control the initial learning rate and weight decay for optimization.
+    \item \texttt{--load\_weights}: Allows loading pre-trained model weights for fine-tuning.
+    \item \texttt{--save\_as}: Defines the output filename for storing the trained model and metrics.
+    \item \texttt{--num\_classes}: Specifies the number of classes for classification.
+    \item \texttt{--ndvi}: Enables the use of a fourth channel for the NDVI index in the input images.
+\end{itemize}
+
+By configuring these parameters at runtime, we ensure flexibility while maintaining consistency 
+across different training runs. This setup enables efficient experimentation without modifying 
+the core training script.
+
+\subsection{Training and validation}
+
+Firstly, the dataset is split into a training and testing set using 
+a 90\% / 10\% ratio, resulting in approximately 1736 training samples and 
+193 testing samples. The training set is then further divided into training 
+and validation sets with an 80\% / 20\% ratio to assess the model's learning 
+capabilities during training. This results in 1388 non-augmented training samples and 
+348 validation samples.
+
+With the application of data augmentation techniques, horizontal and vertical flips alone 
+generate 4x more variations, while rotation and brightness jittering create an effectively 
+infinite number of unique transformations. While it is not possible to directly quantify the 
+number of augmented samples, a realistic estimate suggests that the 1388 training images 
+effectively behave as tens of thousands of unique samples over multiple training epochs.
+
+It is important to note that these sample numbers apply solely to training and validation. 
+Once we are satisfied with the model's performance—measured through validation loss and 
+accuracy—we retrain the models using the full training and validation sets, and 
+finally, evaluate them on the testing set.
+
+Since the goal is to develop models 
+capable of generalizing well to unseen data for fire risk classification, it is 
+crucial to prevent both overfitting and underfitting. To achieve this, 
+we employ the early stopping technique, which monitors the validation loss and stops
+training when no improvement is observed for a predefined number of epochs.
+The predefined number of epochs for training ranges from 15 - 20. This range was
+selected based on the epochs where the validation loss normally stopped decreasing.
+
+Early stopping ensures that the model does not continue training unnecessarily when 
+further improvement is unlikely. Specifically, after each epoch, the validation loss 
+is compared with the lowest recorded loss up to that point. If the validation loss does 
+not improve for five consecutive epochs (our patience parameter), training is 
+stopped to prevent overfitting. In addition to saving the final model, we also save the 
+model corresponding to the epoch with the best validation performance, ensuring that we 
+retain the most effective version of the model.
+
+Furthermore, accuracy and loss values for every epoch are recorded and stored in a JSON 
+file for further analysis if required. After selecting the best-performing models based 
+on validation loss, they are tested against the testing set to evaluate their 
+ability to generalize to unseen data. The evaluation metrics used include 
+the F1-score, accuracy, and the confusion matrix.
+
+The trained models leverage transfer learning, where a pre-trained model serves 
+as the base, and fine-tuning is applied to adapt it to the specific fire risk classification 
+task. We initialize the models with default ImageNet weights and fine-tune them 
+using our dataset.
+
+The training is conducted using the AdamW optimizer with a custom learning rate 
+scheduler in order to improve regularization. The learning rate is adjusted dynamically 
+throughout the training process to improve convergence and stability.
+
+During the first two epochs, a warm-up phase is applied, where the learning rate 
+starts lower and gradually increases according to the following formula:
+
+\[
+\eta_t = \left(0.3 + 0.7 \times \frac{\text{epoch fraction}}{0.15} \right) \cdot \eta_0
+\]
+
+where \(\eta_t\) is the learning rate at epoch \(t\), and \(\eta_0\) is the initial learning rate.
+
+After the warm-up phase, the learning rate is set to its initial value and remains constant 
+during the main training phase until reaching the midpoint of the total training epochs. At 
+this point, a cosine annealing decay is applied to gradually reduce the learning rate, ensuring 
+stable convergence. The decay follows the equation:
+
+\[
+\eta_t = 0.5 \times \left(1 + \cos \left(\pi \times \frac{\text{epoch fraction} - 0.5}{0.5} \right) \right) \cdot \eta_0
+\]
+
+
+This scheduling strategy allows for an initial exploration phase, a stable learning 
+period, and a smooth decay, ultimately leading to better generalization. 
+
+Prior to adopting this adaptive learning rate strategy, static learning rates were 
+tested. However, they led to overfitting, as the models quickly adapted to the training 
+data but failed to generalize to unseen samples. The impact of this overfitting will be 
+further analyzed in the Results and Discussion section. In addition, a gradual 
+unfreezing strategy is applied to the model's layers during training to further 
+reduce overfitting.
+
+The loss function used depends on the number of classes. If there are two classes, 
+BCEWithLogitsLoss is applied. Otherwise, CrossEntropyLoss is used for multi-class 
+classification.
+
+The models can also be trained with the NDVI index as an additional input channel, 
+calculated from the IRG images, if the corresponding flag is enabled. This feature 
+allows the model to leverage additional information about vegetation health and density.
+
+To ensure robustness and a more realistic evaluation, the training process is repeated 
+multiple times with different training and testing splits. The models are trained 
+using a batch size of 16.
+
+
+\subsection{Testing}
+
+The evaluation of the models is carried out using different metrics, namely the confusion 
+matrix, f1-score, and accuracy, measured on the test set. The confusion matrix provides 
+insight into the performance of the model in distinguishing between different fire risk 
+levels. By presenting classification results in a tabular format, it allows for a detailed 
+analysis of which risk categories the model predicts more accurately and where misclassifications occur.
+
+Once the models have been trained and validated, they are evaluated on a separate dataset, 
+the test set, which serves as an independent benchmark for assessing generalization performance. 
+This set ensures that the model is tested on unseen data, simulating real-world conditions 
+where the classification of fire risk for isolated houses must be accurate and reliable.
+
+In addition to evaluating models individually, a final classification is obtained through 
+a \textit{majority voting} approach. Each model contributes an independent prediction for 
+a given sample, and the final class is determined by selecting the most frequently predicted 
+category among them. This ensemble decision-making process enhances robustness and mitigates 
+individual model biases, leading to a more stable and reliable fire risk classification.
+
+By using these evaluation methods, we can determine whether the trained models effectively 
+extract meaningful information from aerial imagery and whether they are capable of correctly 
+classifying fire risk levels in previously unseen data. This final assessment ensures that 
+the proposed approach is suitable for real-world applications in fire risk prediction for isolated 
+houses.

@@ -5,43 +5,105 @@
 %Problem, motivation for solutions, hints about your methodology + results.
 
 \section{Motivation}
-In recent years, the impact of climate change has become increasingly visible in the form
-of more frequent and severe weather events, including wildfires. These fires pose a significant
-threat to ecosystems, properties, and human lives, particularly when they are close to
-residential areas.
+In recent years, the impact of climate change has become increasingly visible in the
+form of more frequent and severe weather events, including wildfires \cite{unep2022wildfires}.
+These fires pose a significant threat to ecosystems, properties, and human lives, particularly
+when they occur at the wildland-urban interface.
 
-Wildfire risk reduction around residential areas is very dependent on effective
-vegetation management in their surroundings. Recognizing the fire risk associated with
-different types of vegetation is essential for planning preventative measures to safeguard
-homes from the devastating impact of wildfires.
+In Portugal, the management of fuels around buildings, initially regulated by Decree-Law
+124/2006 of June 28th \cite{portugal2006}, has been continually updated over the years with the most recent
+update made by Decree-Law 82/2021 of October 13th \cite{portugal2021}\cite{houserefuge2021}\cite{houserefuge2024}. This law mandates
+fuel management within a minimum radius of 50m around buildings. Fuel management involves
+strategic measures such as conversion, reduction, and elimination of vegetation to decrease
+fire intensity and spread rate. Some of the specific requirements include the buildings to
+maintain a minimum distance of 5m between trees/shrubs and themselves and ensuring that
+tree canopies are at least 4m apart from each other. Which is summarized in Figure \ref{fig:veg-man}.
 
-The Agency for the Development of Firefighting Initiatives (ADAI) has conducted a
-comprehensive survey at a national level, covering over 2,000 isolated house locations to identify
-various risk classes associated with the surrounding vegetation. This data is important
-for assessing the potential fire hazards posed by vegetation around residential areas and
-plays a crucial role in strategic fire management and community safety planning.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{../Figures/Veg-management.png}
+    \caption{Summary of main legal specifications relative to management of fuels in the surroundings of a house \cite{icnf1}\cite{icnf2}\cite{icnf3}.}
+    \label{fig:veg-man}
+\end{figure}
 
-The traditional methods of assessing these risks are often labor-intensive and subject
-to human error, involving extensive fieldwork and manual data analysis. On the other hand
-machine learning, especially deep learning, offers a revolutionary approach to this challenge.
-By automating the analysis of satellite and aerial imagery to classify vegetation risk,
-machine learning can provide faster, more accurate assessments at scale. This capability is
-particularly valuable for continuously updating our understanding of risk as the landscape
-changes over time due to both human activity and natural processes.
+Reducing wildfire risks in residential areas heavily relies on effective vegetation management
+in their vicinity. Traditional risk assessment methods are labor-intensive and prone
+to human error, involving extensive fieldwork and manual data analysis. In contrast, machine
+learning, particularly deep learning, presents a transformative approach to this challenge.
+By automating the analysis of satellite/aerial imagery to classify vegetation risk, machine
+learning offers faster, more accurate assessments at a larger scale. This capability is particularly
+valuable for continuously updating our understanding of risk as landscapes change over time due
+to both human activities and natural processes. Moreover, authorities can rapidly identify areas
+where vegetation management requirements may not be met. This capability not only aids
+in enforcing compliance with fire safety regulations but also improves proactive measures
+to mitigate wildfire risks in order to protect lives and properties.
+
+\section{Background}
+
+The \gls{adai} conducted a comprehensive
+national survey in 2020, covering over 2,000 isolated house locations to identify various risk
+classes associated with the surrounding vegetation \cite{almeida2020analise}. The
+distribution of the selection was based on the area burned in each district between 2016 and 2020, according to data
+from the ICNF (Instituto de Conservação da Natureza e das Florestas). Inside each district, the
+houses selection was random, while guaranteeing its distribution over the entire district area in order
+to ensure a representative sample.
+
+The study comprised of characterizing vegetation management within the immediate surroundings
+(<50m) of the isolated houses. The evaluation was based on satellite images from 2018 to 2020 \cite{almeida2020analise}.
+This study focuses primarily on the surroundings as a means of fire propagation, considering
+only the structure of the existing vegetation, and excluding other factors such as orography.
+The natural fuels can be classified as spontaneous or non-spontaneous. Spontaneous fuels are
+those found in wildlands, while non-spontaneous fuels originate from human activities, such as
+lawns, gardens, or vegetable plots. The natural fuels included for the fire risk
+classification are categorized into three groups: arboreal, shrub, and herbaceous.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{../Figures/FireRiskClassificationTable.png}
+    \caption{Description of the characteristics of the immediate surroundings of the house and their relationship with the risk categories adapted from \cite{almeida2020analise}.}
+    \label{fig:fire-risk-table}
+\end{figure}
+
+There are five categories of fire risk defined: low, moderate, high, very high, and extreme. Given
+the heterogeneity of vegetation around the houses, the determination of distance involved several
+categories: trees, bushes, herbaceous plants, and continuous forest. The distance between
+the main building and vegetation was measured for each of these categories, always considering
+the nearest distance for each.
+
+The Figure \ref{fig:fire-risk-table} shows the classification of fire risk based
+on the distance between the vegetation and the main building.
+
+It is important to notice that only vegetation that poses an effective fire risk was considered.
+For instance, well-maintained and watered lawns were excluded from this analysis as they do not
+have the capacity to propagate fire.
 
 \section{Objectives}
-The primary goal of this dissertation is to develop a classifier using ML techniques that
-can accurately identify vegetation risk classes near residences, based on satellite imagery
-or aerial photographs, in accordance with ADAI's risk classification standards.
-To achieve this, the dissertation will focus on gathering and preprocessing relevant data,
-extracting and selecting key features, and developing and optimizing various machine learning models.
+The primary goal of this dissertation is to develop a robust machine learning classifier
+that accurately identifies vegetation risk classes near isolated residences based on satellite
+imagery and aerial photographs, adhering to \gls{adai}'s risk classification standards. To
+achieve this, we will start by gathering and preprocessing relevant data, which includes
+high-resolution aerial/satellite photographs from sources such as the \gls{dgt}, open API satellites, and the house labeling data from \gls{adai}.
 
-Additionally, this research aims to contribute to more effective and efficient wildfire
-risk reduction strategies.
+Next, we will explore popular machine learning models and architectures for our problem at hand.
+We will fine-tune these models to achieve the best possible performance, considering
+the trade-offs between accuracy and computational complexity.
+
+To sum up, this research aims to provide a scalable and efficient solution for assessing fire risk
+around isolated houses, which can be used to inform strategic planning and community
+safety initiatives. By automating the process of identifying vegetation risk classes, we
+can help reduce the time and effort required to assess these fire risks, enabling more timely
+and effective risk mitigation strategies. For example, authorities can use this tool in
+conjunction with updated satellite imagery to identify, as fast as possible, areas where vegetation management
+requirements are not met, and take action to enforce compliance with fire safety regulations, to
+mitigate wildfires. Not only is this faster and possibly more accurate than traditional methods,
+it also allows for a more proactive approach to the fuels management.
 
 \section{Document Structure}
-So far this document has introduced the motivation and objectives of this work. The next
-chapter [2] will introduce the fundamental concepts that are used throughout this work,
-spanning from the ... Later, in chapter [3], some related work and state-of-the-art methods will be presented.
-Chapter [4] will present the work plan for this thesis, describing the steps to be taken in
-order to achieve the objectives presented in section 1.2.
+So far this document has introduced the motivation, the background and objectives of this work. The next
+chapter \ref{cha:concepts} will introduce the fundamental concepts that are used throughout this work,
+spanning from basics of Machine Learning to image types that will be used in our thesis.
+Later, in chapter \ref{cha:related-work}, some related work and state-of-the-art methods,
+that might prove useful for our problem will be presented.
+Finally, at chapter \ref{cha:work-plan}, the work plan for this dissertation will be outlined,
+with a roadmap of the steps that will be taken to achieve the objectives set
+in this introduction chapter.

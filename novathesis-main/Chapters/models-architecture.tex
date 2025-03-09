@@ -1,0 +1,310 @@
+\typeout{NT FILE models-architecture.tex}%
+
+\chapter{Models and architecture}
+\label{cha:models-architecture}
+
+In this chapter, we discuss the models and architectures used to classify
+the fire risk of isolated houses. We explore the different models and
+their respective architectures, as well as the classification layer used
+to predict the fire risk. It will also be explained the unfreezing layer
+strategy used when training the pre-trained models into our dataset.
+
+\section{DenseNet-161 Architecture}
+
+DenseNet-161 is a deep convolutional neural network that belongs to the DenseNet 
+family, which was designed to optimize feature reuse and improve information flow 
+between layers. The architecture follows the key principle of densely connected 
+convolutional layers, where each layer receives input from all preceding layers, 
+ensuring better gradient propagation and reducing redundancy in learned features.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/DensenetArchitect.png}
+    \caption{Representation of Densenet with 3 Dense blocks from \cite{DensenetResearchGate2025}.}
+    \label{fig:densenet_block}
+\end{figure}
+
+One of the defining aspects of DenseNet-161 is the use of dense blocks, each 
+consisting of multiple convolutional layers that share information through direct 
+connections as we can see in Fig \ref{fig:densenet_block}. These dense connections mitigate the vanishing gradient problem and 
+allow the model to achieve high accuracy with fewer parameters compared to 
+traditional deep architectures. Between these dense blocks, transition layers 
+are employed to compress feature maps, reducing computational cost while
+maintaining effective feature extraction.
+
+DenseNet-161 follows a structured layout that begins with an initial convolutional 
+layer followed by four dense blocks. Each dense block consists of multiple layers 
+applying $3 \times 3$ convolutions with batch normalization and ReLU activation. 
+Within a dense block, each layer concatenates its feature maps with those of all 
+preceding layers, increasing the model's representational capacity. Between the 
+dense blocks, transition layers with $1 \times 1$ convolutions and average pooling 
+are applied to control dimensionality.
+
+The model takes an input of size $224 \times 224 \times 3$ and progressively reduces 
+spatial dimensions while increasing depth. The final global average pooling layer 
+extracts high-level features, which are then passed to a fully connected layer for 
+classification.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Layer} & \textbf{Output Size} & \textbf{Details} \\ \hline
+        Convolution & $112 \times 112 \times 96$ & $7 \times 7$, stride 2 \\ \hline
+        Pooling & $56 \times 56 \times 96$ & $3 \times 3$ max pooling \\ \hline
+        Dense Block 1 & $56 \times 56 \times 384$ & 6 layers \\ \hline
+        Transition Layer 1 & $28 \times 28 \times 192$ & $1 \times 1$ conv + avg pool \\ \hline
+        Dense Block 2 & $28 \times 28 \times 768$ & 12 layers \\ \hline
+        Transition Layer 2 & $14 \times 14 \times 384$ & $1 \times 1$ conv + avg pool \\ \hline
+        Dense Block 3 & $14 \times 14 \times 2112$ & 36 layers \\ \hline
+        Transition Layer 3 & $7 \times 7 \times 1056$ & $1 \times 1$ conv + avg pool \\ \hline
+        Dense Block 4 & $7 \times 7 \times 2208$ & 24 layers \\ \hline
+        Pooling & $1 \times 1 \times 2208$ & Global average pooling \\ \hline
+        Fully Connected & $1 \times 1 \times C$ & Classification layer \\ \hline
+    \end{tabular}
+    \caption{Layer-wise structure of DenseNet-161.}
+    \label{tab:densenet_layers}
+\end{table}
+
+A key advantage of DenseNet-161 is its efficiency in parameter utilization. 
+While traditional deep networks often suffer from redundancy, DenseNet leverages 
+feature reuse to achieve higher accuracy with fewer parameters. This property 
+makes it particularly effective in tasks requiring robust feature extraction 
+with limited computational resources.
+
+Additionally, the architecture incorporates residual-like connections without 
+summation, preserving detailed information across layers. The presence of 
+transition layers ensures that the number of feature maps does not grow 
+excessively, keeping computational costs manageable.
+
+DenseNet-161 has been widely adopted in image classification tasks due to its 
+superior performance on benchmark datasets such as ImageNet. The combination 
+of dense connectivity, batch normalization, and efficient pooling operations 
+enables the model to learn highly discriminative features while maintaining 
+computational efficiency. This makes it a strong candidate for our fire risk
+classification task.
+
+\section{ResNet-50 Architecture}
+
+ResNet-50 is a deep convolutional neural network that belongs to the ResNet 
+family, which introduced residual learning to significantly improve gradient 
+propagation in deep architectures. The key innovation in ResNet models is 
+the use of residual connections, which allow layers to learn residual mappings 
+instead of direct transformations, mitigating the vanishing gradient problem 
+and enabling the training of very deep networks.
+
+The architecture of ResNet-50 consists of 50 layers, primarily composed 
+of residual blocks. Each residual block includes identity shortcuts that 
+bypass multiple convolutional layers, facilitating the flow of gradients 
+through the network. This approach allows the model to learn deeper feature 
+representations without suffering from degradation in accuracy due to increasing 
+depth.
+
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics[width=0.6\textwidth]{../Figures/ResNetBlock.png}
+%    \caption{Representation of a residual block used in ResNet-50.}
+%    \label{fig:resnet_block}
+%\end{figure}
+
+ResNet-50 follows a structured layout that begins with an initial convolutional 
+layer followed by multiple residual blocks. Each residual block consists of three 
+convolutional layers: a $1 \times 1$ convolution for dimensionality reduction, a 
+$3 \times 3$ convolution for feature extraction, and another $1 \times 1$ convolution 
+for dimensionality restoration. The shortcut connections add the original input 
+back to the transformed output, improving feature reuse and allowing deeper 
+networks to be trained efficiently.
+
+The model takes an input of size $224 \times 224 \times 3$ and progressively 
+reduces spatial dimensions while increasing feature depth. The final global 
+average pooling layer extracts high-level features, which are then passed to 
+a fully connected layer for classification.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Layer} & \textbf{Output Size} & \textbf{Details} \\ \hline
+        Convolution & $112 \times 112 \times 64$ & $7 \times 7$, stride 2 \\ \hline
+        Pooling & $56 \times 56 \times 64$ & $3 \times 3$ max pooling \\ \hline
+        Residual Block 1 & $56 \times 56 \times 256$ & 3 layers $1\times1, 3\times3, 1\times1 \times 3$ \\ \hline
+        Residual Block 2 & $28 \times 28 \times 512$ & 4 layers $1\times1, 3\times3, 1\times1 \times 4$ \\ \hline
+        Residual Block 3 & $14 \times 14 \times 1024$ & 6 layers $1\times1, 3\times3, 1\times1 \times 6$ \\ \hline
+        Residual Block 4 & $7 \times 7 \times 2048$ & 3 layers $1\times1, 3\times3, 1\times1 \times 3$ \\ \hline
+        Pooling & $1 \times 1 \times 2048$ & Global average pooling \\ \hline
+        Fully Connected & $1 \times 1 \times C$ & Classification layer \\ \hline
+    \end{tabular}
+    \caption{Layer-wise structure of ResNet-50.}
+    \label{tab:resnet_layers}
+\end{table}
+
+A key advantage of ResNet-50 is its ability to train deep models without 
+suffering from performance degradation. The residual connections enable efficient 
+gradient flow, making the network more robust to vanishing gradients while 
+significantly improving convergence speed. These properties make ResNet-50 
+particularly effective for large-scale image classification tasks.
+
+Additionally, ResNet-50 benefits from batch normalization and ReLU activation 
+to enhance training stability and efficiency. Its hierarchical structure allows 
+it to capture increasingly complex patterns as depth increases, making it 
+well-suited for high-resolution image analysis.
+
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics[width=0.6\textwidth]{../Figures/ResNetDiagram.png}
+%    \caption{Overall architecture of ResNet-50, illustrating its residual connections and hierarchical feature extraction.}
+%    \label{fig:resnet_overview}
+%\end{figure}
+
+ResNet-50 has demonstrated strong performance on benchmark datasets such as 
+ImageNet and has been widely used in deep learning applications. Its combination 
+of depth, residual learning, and efficient feature extraction makes it a powerful 
+architecture for image classification, object detection, and other vision-related tasks.
+
+
+\section{EfficientNet-B5 Architecture}
+
+EfficientNet-B5 is a deep convolutional neural network that belongs to the EfficientNet family, which was designed to achieve high accuracy while maintaining computational efficiency. The EfficientNet models introduce a compound scaling method that balances depth, width, and resolution to improve performance without drastically increasing computational costs.
+
+The key innovation behind EfficientNet is the use of the compound scaling principle, which scales the network's depth (number of layers), width (number of channels per layer), and resolution (input image size) proportionally, rather than arbitrarily increasing one of these factors. This results in a more optimized architecture that achieves higher accuracy while using fewer parameters compared to traditional deep networks.
+
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics[width=0.6\textwidth]{../Figures/EfficientNetScaling.png}
+%    \caption{Visualization of compound scaling used in EfficientNet models.}
+%    \label{fig:efficientnet_scaling}
+%\end{figure}
+
+EfficientNet-B5 follows a structured design that consists of several Mobile Inverted 
+Bottleneck Convolution (MBConv) blocks, originally introduced in MobileNetV2. 
+These blocks use depthwise separable convolutions, reducing the number of 
+parameters while maintaining feature extraction efficiency. Each MBConv block 
+contains an expansion phase, a depthwise convolution, and a projection phase,
+ensuring efficient computation and feature reuse.
+
+The network begins with a standard convolutional layer followed by multiple 
+MBConv blocks, gradually increasing feature depth while reducing spatial 
+dimensions. The final layers consist of a global average pooling operation 
+followed by a fully connected layer for classification.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \textbf{Stage} & \textbf{Operator} & \textbf{Resolution} & \textbf{Channels} & \textbf{Repeats} \\ \hline
+        Stem & Conv3x3 & $224 \times 224$ & 48 & 1 \\ \hline
+        1 & MBConv1, k3x3 & $112 \times 112$ & 24 & 3 \\ \hline
+        2 & MBConv6, k3x3 & $56 \times 56$ & 40 & 3 \\ \hline
+        3 & MBConv6, k5x5 & $28 \times 28$ & 64 & 4 \\ \hline
+        4 & MBConv6, k3x3 & $14 \times 14$ & 128 & 4 \\ \hline
+        5 & MBConv6, k5x5 & $14 \times 14$ & 176 & 6 \\ \hline
+        6 & MBConv6, k5x5 & $7 \times 7$ & 304 & 9 \\ \hline
+        7 & MBConv6, k3x3 & $7 \times 7$ & 512 & 3 \\ \hline
+        Head & Conv1x1 & $7 \times 7$ & 2048 & 1 \\ \hline
+        Pooling & Global Average Pooling & $1 \times 1$ & 2048 & - \\ \hline
+        Fully Connected & Dense Layer & $1 \times 1$ & C & - \\ \hline
+    \end{tabular}
+    \caption{Layer-wise structure of EfficientNet-B5.}
+    \label{tab:efficientnet_layers}
+\end{table}
+
+One of the key advantages of EfficientNet-B5 is its ability to achieve high 
+accuracy while maintaining computational efficiency. Compared to traditional 
+deep networks, EfficientNet requires significantly fewer parameters while 
+matching or surpassing their performance on benchmark datasets. This makes 
+it an attractive choice for applications that require high precision without 
+excessive computational overhead.
+
+Additionally, EfficientNet-B5 incorporates Swish activation functions, batch 
+normalization, and squeeze-and-excitation (SE) blocks, which adaptively 
+recalibrate feature maps to improve learning efficiency. The network also 
+supports higher resolution inputs ($456 \times 456$), enabling better feature 
+extraction from detailed imagery.
+
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics[width=0.6\textwidth]{../Figures/EfficientNetDiagram.png}
+%    \caption{Overall architecture of EfficientNet-B5, illustrating its use of MBConv blocks and compound scaling.}
+%    \label{fig:efficientnet_overview}
+%\end{figure}
+
+EfficientNet-B5 has demonstrated superior performance on ImageNet and other 
+benchmark datasets, making it well-suited for applications requiring accurate 
+and efficient image classification. Its combination of depthwise separable 
+convolutions, squeeze-and-excitation blocks, and compound scaling allows it 
+to achieve a strong balance between accuracy and computational cost.
+
+\section{Computational Complexity and Model Size}
+One of the key considerations when choosing a deep learning architecture is the balance between performance and computational efficiency. DenseNet-161, despite its deep architecture, maintains a relatively lower parameter count compared to other models like ResNet, owing to its feature reuse strategy.
+
+Table \ref{tab:densenet_params} provides an overview of the model's computational footprint, including the number of parameters and approximate memory usage.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Model} & \textbf{Parameters} & \textbf{Size (FP32)} \\ \hline
+        ResNet-50 & 25.6M & 98 MB \\ \hline
+        DenseNet-161 & 28.7M & 115 MB \\ \hline
+        EfficientNet-B5 & 30.0M & 120 MB \\ \hline
+    \end{tabular}
+    \caption{Comparison of model sizes and parameter counts.}
+    \label{tab:densenet_params}
+\end{table}
+
+
+
+\section{Custom Classification Layer}
+
+To adapt the pre-trained architectures for the fire risk classification task, a simple
+custom classification layer was implemented, replacing the default fully connected 
+(FC) layer of each model. The modified classification layer enhances the network's 
+ability to generalize while providing additional flexibility in learning complex patterns.
+
+The final layer of the pre-trained base models (DenseNet-161, ResNet-101, and 
+EfficientNet-B5) was replaced with a fully connected classifier, structured as 
+shown in Table \ref{tab:classification_layer}.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Layer} & \textbf{Size} & \textbf{Activation} \\ \hline
+        Fully Connected (FC1) & Input: extracted features, Output: 4096 & ReLU \\ \hline
+        Dropout & Probability: 0.4 & - \\ \hline
+        Fully Connected (FC2) & Input: 4096, Output: 4096 & ReLU \\ \hline
+        Dropout & Probability: 0.4 & - \\ \hline
+        Output Layer (Binary Classification) & Input: 4096, Output: 1 & Sigmoid \\ \hline
+        Output Layer (Multi-Class Classification) & Input: 4096, Output: Number of classes & Softmax \\ \hline
+    \end{tabular}
+    \caption{Structure of the custom classification layer.}
+    \label{tab:classification_layer}
+\end{table}
+
+The final layer varies depending on the number of classes. For binary classification, 
+a single output neuron with a Sigmoid activation function is used. For multi-class 
+classification, a Softmax activation function is applied to produce class probabilities.
+
+Different values of dropout rates were tested to assess their impact on regularization, 
+as overfitting was a potential issue due to the relatively small dataset size. The chosen 
+dropout probability of 0.4 was found to provide a balance between retaining relevant 
+feature representations and preventing the model from memorizing the training data.
+
+By introducing this custom classification layer, the network maintains the rich feature 
+representations extracted by the deep feature extractor while enhancing its adaptability 
+to the specific classification task.
+
+\section{Ensemble Model}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Model} & \textbf{Parameters} & \textbf{Size (FP32)} \\ \hline
+        ResNet-50 & 25.6M & 98 MB \\ \hline
+        DenseNet-161 & 28.7M & 115 MB \\ \hline
+        EfficientNet-B5 & 30.0M & 120 MB \\ \hline
+    \end{tabular}
+    \caption{Comparison of model sizes and parameter counts.}
+    \label{tab:model_comparison2}
+\end{table}

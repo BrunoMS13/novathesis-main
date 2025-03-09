@@ -11,9 +11,213 @@
 \chapter{Related Work}
 \label{cha:related-work}
 
-\dots
+% Quick intro to the chapter
+In this chapter, we will review some of the related work in the field of image classification
+of aerial/satellite images using machine learning techniques. This review will help us understand
+the current landscape of research in this area and identify potential work
+that can be used as a reference for our own research.
 
-\section{Machine Learning Models for Land Cover Classification}
+\section{Remote Sensing Image Classification}
 
-There is a growing need to use robust machine learning techniques to replace
-human classification due to its advantages
+The article \textit{Remote Sensing Image Scene Classification Meets Deep Learning} \cite{cheng2020remote} provides a systematic review of deep learning methods for remote
+sensing image scene classification, covering more than 160 papers. It compares the accuracies of
+several models using the UC-MERCED dataset \cite{yang2010bag}, AID dataset \cite{xia2017aid}, and
+NWPU-RESISC45 dataset \cite{cheng2017remote}, offering a comprehensive overview of their performance.
+
+The UC-Merced dataset, contains 21 scene classes with 100
+land-use images per class, resulting in a total of 2100 images. Each image has a fixed resolution
+of 256x256 pixels with a spatial resolution of 0.3 meters.
+
+The AID dataset, consists of 30 scene classes,
+each containing between 220 and 420 images. These images, totaling 10,000, were cropped from Google
+Earth imagery and fixed at 600x600 pixels. The dataset is multisourced and multiresolution, with
+pixel resolutions ranging from about 8 meters to 0.5 meters.
+
+The NWPU-RESISC45 dataset, is
+the largest among the three, with 45 scene categories and 700 images per category, amounting
+to 31,500 images in total. These images were sourced from Google Earth, fixed at 256x256 pixels,
+and span over 100 countries and regions. The pixel resolution varies from about 30 meters to
+0.2 meters for most scene categories. Notably, the NWPU-RESISC45 is the most challenging of the
+three datasets and therefore carries more weight in our evaluation of model performance.
+
+Although our specific problem focuses on fire risk classification rather than scene
+classification, this article still provides a valuable overview of state-of-the-art
+methods in the field of remote sensing image classification.
+\subsection{Potential Challenges}
+
+We can specifically relate to the challenge of interclass similarity. It may be difficult to
+distinguish between close risk classes, such as low and moderate risk, due to overlapping vegetation
+characteristics. These classes can be visually similar, making them hard to differentiate even for
+the human eye.
+
+Additionally imaging conditions can also have a significant impact, as illustrated in the Figures \ref{fig:vc83}
+and \ref{fig:vc102}, taken from the \gls{dgt} open API. These orthophotos were taken at different times of the day, resulting in varying shadows
+and lighting conditions. Such variations can affect the appearance of vegetation and surrounding
+areas, further complicating the accurate classification of fire risk.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/VC83.png}
+        \caption{Very High Risk House}
+        \label{fig:vc83}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/VR95.png}
+        \caption{High Risk House}
+        \label{fig:vc102}
+    \end{minipage}
+    \caption{Very High and High Fire Risk Areas respectively in \gls{irg} format.}
+    \label{fig:veryhigh-vs-high}
+\end{figure}
+
+To address the challenges posed by shadows, we can explore using satellite images from open API
+sources to capture house photos at more optimal times of the day. However, this approach may
+not be feasible due to the resolution and quality limitations of freely available images
+compared to the \gls{dgt} orthophotos, unless we invest in higher-quality data. Therefore, we will
+consider this as a last resort if shadows prove to be a significant issue. Ideally, it
+would be highly beneficial to develop a model that is robust to these shadow variations,
+as this could also provide extra information about the height of the vegetation.
+
+\subsection{Deep learning-based scene classification algorithms}
+
+The article \cite{cheng2020remote} divides deep learning-based scene classification
+algorithms into three categories: the autoenconder-based methods, CNN-based methods,
+and GAN-based methods.
+
+\subsubsection{Autoencoder-based methods}
+Autoencoders have been widely used in earlier years for remote sensing image scene classification due
+to their ability to automatically learn mid-level visual representations from unlabeled data.
+While autoencoder-based methods have achieved good results in remote sensing image scene
+classification, most of them do not fully exploit scene class information, which limits their
+ability to learn the best discriminative features for distinguishing different scene classes.
+Therefore, since their performance is generally lower than that of CNN-based methods as proved in
+\cite{cheng2020remote}, we will not focus on autoencoder-based methods in this work.
+
+\subsubsection{CNN-based methods}
+The use of \gls{cnn} for remote sensing image classification tasks has become increasingly
+popular in recent years. The CNN-based methods of remote sensing image classification
+can be divided into three categories: using pretrained \gls{cnn} as feature extractors, fine-tuning
+pretrained \gls{cnn} on target datasets, and training \gls{cnn} from scratch.
+
+\smallskip
+
+Using \textbf{pretrained \gls{cnn} as feature extractors} and then fusing or combining the features
+extracted by existing \gls{cnn} is a common practice as referred in \cite{cheng2020remote}. It
+is simple and effective on small-scale datasets. Some of the best performing and
+noteworthy referred are the MSCP (Multilayer Stacked Covariance Pooling) \cite{MSCP} and
+the FACNN (Feature Aggregation Convolution Neural Network) \cite{FACNN}, with accuracies
+of 98.36\% and 98.81\% respectively for the UC-MERCED dataset.
+
+The MSCP uses a pretrained model to extract multilayer feature maps, those feature maps are
+stacked together and a covariance matrix is calculated. Each entry of the resulting covariance
+matrix provides a natural and innovative way to exploit complementary information provided
+by different layers feature maps. Finally, the extracted covariance matrices are used as features
+for classification by a Support Vector Machine (SVM).
+
+The FACNN, on the other hand, comprises three main components: a backbone pipeline, a
+convolutional feature encoding module, and a softmax classifier as seen in Figure \ref{fig:facnn-arch}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{../Figures/FACNN-arch.png}
+    \caption{FACNN architecture \cite{FACNN}.}
+    \label{fig:facnn-arch}
+\end{figure}
+The convolutional feature encoding module is designed to encode intermediate convolutional features into a unified
+convolutional representation through end-to-end training. Initially, the intermediate
+convolutional features are fed to a pooling layer to standardize the width and height of
+different features to 7 x 7. Subsequently, a concatenation layer is used to combine these
+features by their channels. This is followed by 1 x 1 convolutional layers with ReLU activation
+functions to fuse the channel-wise information of the different features. A global average
+pooling layer is then used to produce the convolutional representation. This representation
+is merged with the second fully connected (FC) feature to create a discriminative scene
+representation, which is ultimately fed to a softmax classifier to derive the semantic
+labels of remote sensing scenes.
+
+Both MSCP and FACNN have achieved good results, therefore, if we decide to use pretrained
+\gls{cnn} as feature extractors, these models could be a good starting point.
+
+\smallskip
+
+\textbf{Fine-tuning pretrained \gls{cnn}} is particularly useful when the amount of training samples
+is insufficient to train a new CNN from scratch. The idea is to fine-tune an already trained
+CNN on target datasets while optimizing its loss functions. Among the best-performing works
+compared in \cite{cheng2020remote} using the UC-MERCED dataset are the SF-CNN (Scale-Free
+Convolutional Neural Network) \cite{SF-CNN} and the GBN (Gated Bidirectional Network) \cite{GBN},
+with accuracies of 98.57\% and 99.05\%, respectively. However, for the NWPU-RESISC45 dataset, models
+such as Hydra \cite{hydra}, which employs an ensemble of \gls{cnn}, proved to be superior. Hydra achieved
+an accuracy of 94.51\%, the highest among the models tested on this dataset, compared to the SF-CNN's
+accuracy of 92.55\%. Therefore, an ensemble approach like Hydra might be a solution to consider for our
+problem.
+
+The hydra framework makes use of two CNN popular architectures ResNet (residual networks)
+\cite{he2016deep} and DenseNet (dense convolutional networks) \cite{huang2017densely}.
+The training process consisted on creating the body of the Hydra by optimizing the chosen
+architectures using weights pretrained on ImageNet \cite{deng2009imagenet} as a starting
+point. Then with the obtained weights, they are copied to several \gls{cnn}, which are further
+optimized to form the heads of the Hydra. To achieve a final classification, an image
+is fed to all Hydra's heads and their outputs are fused to generate a single decision as
+seen in Figure \ref{fig:hydra-testing}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/hydra-testing.png}
+    \caption{Hydra framework testing flowchart from \cite{hydra}.}
+    \label{fig:hydra-testing}
+\end{figure}
+
+Even though fine-tuning pretrained \gls{cnn} achieved remarkable performances, this type of approach has some limitations,
+such as learned features not always being entirely suitable for the characteristics of target
+datasets, which can be an inconvenience, needing to modify pretrained \gls{cnn}.
+
+\smallskip
+
+\textbf{Training \gls{cnn} from scratch} has obtained astonishing results as referred in \cite{cheng2020remote}.
+However they require numerous annotated samples to fine-tune already trained \gls{cnn} or train a network
+from scratch which is not only time-consuming but also computationally expensive. One of the
+best-performing models using this approach is the SCCov (Skip-Connected Covariance) \cite{sccov}.
+The SSCov model adds skip connections and covariance pooling to \gls{cnn}, reducing the amount
+of parameters and achieving a good classification performance with a performance of 99.05\% for
+the UC-MERCED dataset, the same as the SF-CNN model.
+
+For our problem at hand, training \gls{cnn} from scratch might not be the best approach due to the
+size of our dataset.
+
+\subsubsection{GAN-based methods}
+The key method for unsupervised learning, Generative Adversarial Networks (GANs), contrasts with
+CNN-based methods in the context of remote sensing, which typically require massive labeled samples
+to train models effectively, presenting a significant challenge due to the labor-intensive nature
+of sample annotation.
+
+In response to this challenge, some studies have started employing GANs for scene classification
+\cite{attgan}, \cite{martagan}. GANs offer a distinct advantage by enabling the generation of
+high-quality synthetic samples that can be used to augment training datasets, thereby alleviating
+the dependency on large volumes of labeled data.
+
+Despite their potential, GAN-based scene classification methods face several limitations. Compared to
+CNN-based methods, GAN-based approaches are relatively underexplored in the literature, and their
+performance is generally considered inferior. Moreover, most GAN-based methods cannot be trained
+end-to-end as they often require labels for training an additional classifier. This requirement
+diminishes the efficiency of GANs as a stand-alone solution for scene classification.
+
+\subsection{Conclusions}
+There are many different architectures and techniques that have provided good results
+for the image scene classification problem. The best approaches by far were the ones
+that followed CNN-based methods. Both the autoencoder-based methods and the GAN-based
+methods have shown worse results while also being less explored in the literature.
+
+As we do not have a huge and varied dataset, training a CNN from scratch is definitely
+not the best approach for our problem. Instead, we will try both fine-tuning an already
+pretrained CNN and using \gls{cnn} as feature extractors to find out which one fits best
+our problem. Both the Hydra and the FACNN architectures are good starting points.
+
+Moreover, some architectures, such as the FACNN, may require our images to be in a specific
+format, necessitating a reduction in image resolution. While this might lead to a loss of
+information, it can also result in faster training times. On the other hand, the Hydra
+architecture, which uses an ensemble of ResNet and DenseNet models, offers flexibility
+in handling different image sizes, allowing us to maintain the original resolution of the
+images, even if at a higher computational cost.

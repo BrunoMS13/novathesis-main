@@ -7,22 +7,43 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \typeout{NT FILE abstrac-pt.tex}%
+Nos últimos anos, o impacto das mudanças climáticas tem se manifestado em incêndios
+florestais mais frequentes e severos, representando ameaças significativas para ecossistemas,
+propriedades e vidas humanas. A gestão eficaz da vegetação em torno dessas áreas é crucial
+para a redução do risco de incêndios florestais. Reconhecer o risco de incêndio associado
+a diferentes tipos de vegetação é essencial para planear medidas preventivas que protejam as
+residências dos impactos devastadores dos incêndios.
 
+Este plano de dissertação visa procura uma forma de automatizar a avaliação dos riscos de incêndio usando técnicas de
+aprendizagem automática e profunda, focando na vegetação ao redor das áreas residenciais.
+As classificações fornecidas pela \gls{adai},
+abrangem mais de 2.000 locais de casas isoladas em Portugal Continental, serão utilizadas como
+verdade de terreno para o nosso estudo. As imagens aéreas das casas e da vegetação circundante
+são obtidas através da API de dados abertos da \gls{dgt}.
 
-% E agora vamos fazer um teste com uma quebra de linha no hífen a ver se a \LaTeX\ duplica o hífen na linha seguinte se usarmos \verb+"-+… em vez de \verb+-+.
-%
-% zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz zzz zzzz comentar"-lhe zzz zzzz zzz zzzz
-%
-% Sim!  Funciona! :)
+Trabalhos relacionados como o Hydra e a Rede Neural Convolucional de
+Agregação de Características (FACNN), apresentam arquiteturas de modelos altamente eficazes na
+classificação de imagens de origem aérea e de satélite. Estes modelos são baseados em redes neurais
+convolucionais (CNNs) e utilização de transferência de aprendizagem, proporcionando uma base sólida para
+o nosso problema.
+
+Além disso, delineamos um plano de trabalho estruturado, envolvendo a obtenção de dados,
+pré-processamento, implementação de modelos, treino e avaliação. Esta abordagem visa garantir o
+desenvolvimento de uma solução escalável e eficiente para a avaliação do risco de incêndio.
+
+Ao automatizar a identificação das classes de risco de vegetação, esta pesquisa busca reduzir o
+esforço necessário para a avaliação de riscos, permitindo estratégias de mitigação mais eficazes. Por último, este estudo contribui para o objetivo mais amplo de promover
+o combate à crescente ameaça dos incêndios florestais derivados das mudanças climáticas.
 
 % Palavras-chave do resumo em Português
 % \begin{keywords}
 % Palavra-chave 1, Palavra-chave 2, Palavra-chave 3, Palavra-chave 4
 % \end{keywords}
 \keywords{
-  Primeira palavra-chave \and
-  Outra palavra-chave \and
-  Mais uma palavra-chave \and
-  A última palavra-chave
+  Aprendizagem Automática \and
+  Aprendizagem Supervisionada \and
+  Aprendizagem Profunda \and
+  Redes Neurais Convolucionais \and
+  Sensoriamento Remoto
 }
 % to add an extra black line

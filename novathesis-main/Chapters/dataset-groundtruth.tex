@@ -1,0 +1,82 @@
+\chapter{Dataset and Ground Truth}
+\label{cha:dataset-groundtruth}
+
+In the previous chapter, we discussed the data collection process and the augmentation 
+techniques applied to increase the dataset size. In this chapter, we analyze and discuss 
+the ground truth provided by the \gls{adai} study.
+
+The \gls{adai} study provided fire risk classifications for exactly 1923 isolated houses 
+in Portugal, which we use as the ground truth for our model. These houses are classified 
+into five fire risk categories, as shown in Table \ref{fig:fire-risk-table}. The 
+distribution of classifications is presented in Table \ref{fig:data-distribution}:
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Fire Risk} & \textbf{Number of Houses} \\ \hline
+        Low                &  25  \\ \hline
+        Moderate           &  210  \\ \hline
+        High               &  781  \\ \hline
+        Very High          &  763  \\ \hline
+        Extreme            &  151  \\ \hline
+        Total              &  1923 \\ \hline
+    \end{tabular}
+    \caption{Fire risk classification distribution.}
+    \label{fig:data-distribution}
+\end{table}
+
+To facilitate model training and improve predictive performance, we consolidated 
+the five original fire risk categories into two broader classes: Lower Risk 
+(which includes Low, Moderate, and High categories) and Higher Risk (which includes 
+Very High and Extreme categories). This transformation was primarily motivated 
+by the need to create a more balanced dataset, ensuring that the model does not 
+become disproportionately biased toward the larger categories. With the new 
+grouping, the dataset achieves a more even distribution, containing 1016 houses 
+in the Lower Risk class and 914 in the Higher Risk class, making it more suitable 
+for machine learning applications.
+
+A significant issue with the original five-category classification was that certain 
+classes contained considerably more data points than others, potentially leading to 
+biased model behavior. Machine learning models tend to favor dominant classes, 
+meaning that in an imbalanced dataset, predictions may be skewed towards categories 
+with more training examples, while underrepresented categories are more likely 
+to be misclassified. By consolidating the fire risk levels into two broader groups, 
+we mitigate this issue and improve the model's ability to generalize effectively.
+
+Additionally, some fire risk levels can be difficult to tell apart, especially when 
+relying only on aerial imagery. As shown in Figure \ref{fig:fire-risk-table}, certain 
+differences, like how shrubs are grouped in the 5-50m surroundings to differentiate
+between high and very high risk, may not be obvious from a top-down view.
+
+While a five-class classification may provide more granularity in risk assessment, 
+the complexity of distinguishing these finer details, combined with the limitations 
+of aerial imaging makes the two-class system a more practical and reliable approach 
+given the available dataset. A more refined multi-class classification could become 
+viable with higher-resolution imaging, additional geospatial data, or a larger 
+dataset with more balanced category distributions. However, with the current data 
+constraints, consolidating fire risk into two primary classes strikes a balance 
+between interpretability, dataset balance, and model effectiveness.
+
+\section{Ground Truth Collection}
+The data provided by the \gls{adai} study is stored in a .kmz file format, which 
+can be opened using Google Earth. Through Google Earth, we can visualize the 
+exact locations of the classified houses and their respective fire risk levels, 
+as illustrated in Figure \ref{fig:gearth_vis}. The classifications are 
+color-coded: blue represents low risk, green represents moderate risk, yellow 
+represents high risk, orange represents very high risk, and red represents 
+extreme risk (as seen in figure \ref{fig:fire-risk-table}).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{../Figures/GoogleEarthVis.png}
+    \caption{Visualization of classified houses in Braga using Google Earth.}
+    \label{fig:gearth_vis}
+\end{figure}
+
+To extract and utilize this data, a Python script was developed to parse the 
+.kmz file, retrieving the coordinates and fire risk classifications of the houses. 
+The extracted data is then stored in a .csv file, which is subsequently used by
+the data collection script to fetch corresponding aerial imagery from the \gls{dgt} 
+orthophoto service.
+

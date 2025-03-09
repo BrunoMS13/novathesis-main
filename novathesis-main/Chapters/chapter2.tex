@@ -13,59 +13,65 @@
 
 In this section we aim to introduce some of the concepts that are relevant to the work
 presented in this thesis. These concepts include Machine Learning techniques,
-mainly toward Supervised Learning, and the subject of study which is the fire risk
-classification.
+mainly toward Supervised Learning, and some very basic fundamentals about image types
+that are relevant to our thesis.
 
 \section{Machine Learning}
-
-Machine Learning (ML) is a field of study in computer science that utilizes
+\gls{ml} is a field of study in computer science that utilizes
 statistical techniques to enable computer systems to learn from data, recognize
-patterns, and make predictions on new data. ML is broadly categorized into
-supervised and unsupervised learning \ref{fig:ml-tree}. The choice between these categories
-depends on the problem at hand; supervised learning is used when labeled
+patterns, and make predictions on new data. \gls{ml} is broadly categorized into
+supervised and unsupervised learning. The choice between these categories
+depend on the problem at hand; supervised learning is used when labeled
 data is available, while unsupervised learning is used for finding hidden
-patterns in unlabeled data.
+patterns in unlabeled data as seen in Figure \ref{fig:ml-tree}.
 
-In our case, supervised learning is more suitable, as we aim to classify
+For our case, supervised learning is more suitable, as we aim to classify
 vegetation risk based on labeled aerial photographs/satellite imagery
-in accordance with ADAI's risk classification standards, which is considered
-a image classification problem.
-%A detailed taxonomy and overview of various ML algorithms and their aspects can be seen in Figure 2.1.
+in accordance with \gls{adai}'s risk classification standards, which is considered
+an image classification problem.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{../Figures/MLTaxonomy.drawio.png}
-    \caption{Machine Learning taxonomy.}
+    \caption{Machine Learning taxonomy inspired by \cite{image_taxonomy}.}
     \label{fig:ml-tree}
 \end{figure}
 
-When discussing ML, it is essential to address feature extraction, normalization,
+When discussing \gls{ml}, it is essential to address feature extraction, normalization,
 and standardization.
 
 Feature extraction involves identifying and extracting the most relevant
 features from the data. Techniques such as Principal Component Analysis
-(PCA) and Convolutional Neural Networks (CNNs) are commonly used for
+(PCA) and \gls{cnn} are commonly used for
 this purpose. In the context of satellite/aerial imagery, important features
 might include vegetation indices, texture, and spectral bands. These
-features help in distinguishing different vegetation types and their
-associated fire risks.
+features help in distinguishing different vegetation types \cite{rs13081411} and therefore
+the associated fire risks.
 
-Normalization and standardization are crucial steps in ML, particularly
-when dealing with diverse data types and scales. For satellite imagery,
-features can vary significantly in scale, which can pose challenges for
-classification algorithms. Without normalization or standardization,
-certain features might disproportionately influence the classification
-process, leading to suboptimal results. Normalization ensures that each
+Normalization and standardization are crucial steps in \gls{ml}, particularly
+when dealing with diverse data types and scales. They ensure that each
 feature contributes equally to the model, improving the accuracy and
 robustness of the classifier.
+For satellite imagery, features can vary significantly in scale, which can pose challenges for
+classification algorithms \cite{Adegun2023}. Without normalization or standardization,
+certain features might disproportionately influence the classification
+process, leading to worse results.
 
 \subsection{Supervised Learning}
 
-Supervised Learning (SL) is a type of machine learning where the model is trained
-on a labeled dataset. The model learns to map input data to the correct output
+Supervised Learning (SL) models learn to map input data to the correct output
 by minimizing the error between the predicted and actual values. The goal of
-supervised learning is to generalize from the training data to make accurate
+SL is to generalize from the training data to make accurate
 predictions on new, unseen data \cite{geeksforgeeks_supervised_learning}.
+
+There are two main types of supervised learning: regression and classification.
+In regression, the goal is to predict a continuous value
+based on input features. For example, predicting house prices based on features
+such as location, size, and number of rooms.
+
+In classification, the goal is to predict a discrete
+class label based on input features. For example, our problem at hand, classifying
+house fire risk based on the surrounding vegetation features, is a classification problem.
 
 In supervised learning, the dataset is divided into two parts: the training set
 and the test set. The training set is used to train the model, while the test
@@ -74,28 +80,23 @@ trained by adjusting its parameters to minimize the error between the predicted
 and actual values on the training set. Once the model is trained, it is evaluated
 on the test set to assess its performance and generalization capabilities.
 
-There are two main types of supervised learning: regression and classification.
-In regression, the goal is to predict a continuous value
-based on input features. For example, predicting house prices based on features
-such as location, size, and number of rooms is a regression problem.
+\subsubsection{Evaluation}
 
-In classification, the goal is to predict a discrete
-class label based on input features. For example, our problem at hand, classifying
-house fire risk based on the surrounding vegetation features, is a classification problem.
-
-To evaluate the performance of a supervised learning model, various metrics
-are used, such as accuracy, precision, recall, and F1 score. These
-metrics help in assessing the model's performance, identifying areas for improvement,
-and comparing different models.
+To evaluate the performance of a supervised learning model, various metrics are used,
+such as accuracy, precision, recall, F1 score, and kappa statistic. These metrics help
+in assessing the model's performance, identifying areas for improvement, and comparing
+different models.
 
 The accuracy of a model is the proportion of correct predictions to the total number
-of predictions \eqref{eq:accuracy}. It is a simple and intuitive metric but can be misleading when
-dealing with imbalanced datasets. Precision measures the proportion of true positive
-predictions to the total number of positive predictions \eqref{eq:precision}. It is useful when the cost
-of false positives is high. Recall, also known as sensitivity, measures the proportion
-of true positive predictions to the total number of actual positive instances \eqref{eq:recall}. It is
-useful when the cost of false negatives is high. The F1 score is the harmonic mean of
-precision and recall \eqref{eq:f1} and provides a balance between the two metrics \cite{vidalwadi2024}.
+of predictions \eqref{eq:accuracy}. While simple and intuitive, accuracy can be misleading
+when dealing with imbalanced datasets. Precision measures the proportion of true positive
+predictions to the total number of positive predictions \eqref{eq:precision}, which is useful
+when the cost of false positives is high. Recall, also known as sensitivity, measures the
+proportion of true positive predictions to the total number of actual positive instances
+\eqref{eq:recall}, making it useful when the cost of false negatives is high. The F1 score, the
+harmonic mean of precision and recall \eqref{eq:f1}, balances the two metrics and provides a
+more comprehensive performance measure \cite{vidalwadi2024}.
+
 
 \begin{equation}
     Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
@@ -116,21 +117,60 @@ precision and recall \eqref{eq:f1} and provides a balance between the two metric
     F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
     \label{eq:f1}
 \end{equation}
+In these equations:
+\begin{itemize}
+    \item True Positives (TP): The number of correctly predicted positive instances.
+    \item True Negatives (TN): The number of correctly predicted negative instances.
+    \item False Positives (FP): The number of instances incorrectly predicted as positive.
+    \item False Negatives (FN): The number of instances incorrectly predicted as negative.
+\end{itemize}
+
+In addition to these metrics, the kappa statistic \eqref{eq:kappa} is used to evaluate the agreement
+between predicted and actual classifications, accounting for the possibility of agreement
+occurring by chance. It is especially useful for imbalanced datasets. Kappa values range
+from -1 to 1, where 1 indicates perfect agreement, 0 indicates no agreement beyond chance,
+and negative values indicate disagreement \cite{kappa}. The kappa statistic is calculated as follows:
+\begin{equation}
+    \kappa = \frac{P_o - P_e}{1 - P_e}
+    \label{eq:kappa}
+\end{equation}
+where \(P_o\) is the observed agreement and \(P_e\) is the expected agreement by chance.
+
+Including the kappa statistic in the evaluation framework provides a more reliable assessment
+of model performance, ensuring that the model's effectiveness is thoroughly evaluated.
+
+For multiclass classification problems, such as our own, evaluation metrics can be extended
+to provide a more comprehensive assessment. One approach is macro-averaging, where the
+metric is calculated independently for each class and then averaged. This method treats
+all classes equally. Another approach is micro-averaging, which aggregates the contributions
+of all classes to compute the average metric, treating all instances equally. Additionally,
+weighted-averaging calculates the metric independently for each class and then takes the
+average, weighted by the number of true instances for each class. These methods ensure that
+the evaluation metrics accurately reflect the performance across all classes.
 
 
-\subsection{Deep Learning}
+\subsection{Unsupervised Learning}
 
-Deep Learning (DL) is a specialized subset of machine learning that makes use of
-artificial neural networks to identify intricate patterns within large datasets.
+Unsupervised Learning (UL) main goal is to discover hidden patterns
+and structures within the data without explicit guidance.
+
+Unsupervised learning is particularly useful for tasks such as clustering, dimensionality
+reduction, and anomaly detection. For our problem, unsupervised learning does not
+apply directly, as we have labeled data for the fire risk classification.
+
+\section{Deep Learning on Artificial Neural Networks}
+
+\gls{dl} is a specialized subset of machine learning that makes use of
+artificial neural networks (ANNs) to identify intricate patterns within large datasets.
 Unlike traditional machine learning algorithms, DL algorithms can learn directly
 from raw data, automatically extract features, and make highly accurate predictions.
 This capability has significantly contributed to various fields, including computer vision,
 natural language processing, and speech recognition.
 
 DL models consist of multiple layers of artificial neurons that process
-input data and learn hierarchical representations of this data. The most prevalent
-type of deep learning model is the deep neural network, which is structured with an
-input layer, one or more hidden layers, and an output layer \ref{fig:dnn-example}. Each layer contains
+input data and learn hierarchical representations of this data \cite{spotfire_neural_network}. The most prevalent
+type of \gls{dl} model is the deep neural network, which is structured with an
+input layer, one or more hidden layers, and an output layer as seen in Figure \ref{fig:dnn-example}. Each layer contains
 numerous neurons that perform computations on the input data and pass the results
 to the subsequent layer. The hidden layers are responsible for learning progressively
 complex features of the data, whereas the output layer generates the final prediction.
@@ -138,99 +178,550 @@ complex features of the data, whereas the output layer generates the final predi
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{../Figures/DNN.png}
-    \caption{Deep Neural Network Example.}
+    \caption{Artificial Neural Network Example from \cite{deep_neural_network_img}.}
     \label{fig:dnn-example}
 \end{figure}
 
 The flexibility and power of deep neural networks make them highly suitable for a
-variety of complex tasks. However, when it comes to image data, a specific type of
-deep learning model, known as Convolutional Neural Networks (CNNs), has proven to
-be exceptionally effective.
+variety of complex tasks. Moreover, when it comes to image data and image classification,
+a specific type of \gls{dl} model, known as \gls{cnn},
+has proven to be exceptionally effective \cite{rs13224712}.
 
-\subsubsection{Convolutional Neural Networks (CNNs)}
+\subsection{Multilayer Perceptrons}
 
-Convolutional Neural Networks (CNNs) are a type of deep neural network that
-is particularly well-suited for image classification tasks. \cite{rs-survey-cnns} CNNs are designed
+\gls{mlp} are one of the most basic forms of artificial neural
+networks. They consist of multiple layers of neurons, including an input layer, one
+or more hidden layers, and an output layer. \gls{mlp} are fully connected, meaning each
+neuron in one layer connects to every neuron in the next layer as seen in Figure
+\ref{fig:dnn-example}.
+
+\subsubsection{Activation Functions}
+
+A critical component of \gls{mlp} is the activation function used in the neurons. Activation
+functions introduce non-linearity into the network, enabling it to learn complex patterns.
+Nowadays the most popular choice for activation functions is the Rectified Linear Unit (ReLU) \ref{eq:relu},
+due to its simplicity and good performance. Other common activation functions include the
+Sigmoid \ref{eq:sigmoid}, and Tanh (Hyperbolic Tangent) \ref{eq:tanh}.
+
+\begin{equation}
+    f(x) = \max(0, x)
+    \label{eq:relu}
+\end{equation}
+
+\begin{equation}
+    f(x) = \frac{1}{1 + e^{-x}}
+    \label{eq:sigmoid}
+\end{equation}
+
+\begin{equation}
+    f(x) = \tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}
+    \label{eq:tanh}
+\end{equation}
+\smallskip
+
+While \gls{mlp} are powerful for certain types of data, they are not as efficient as \gls{cnn} for
+image classifications due to their inability to exploit the spatial structure of images \cite{zhang2021dive},
+at least, not on their own.
+
+
+\subsubsection{Forward Propagation}
+
+Forward propagation is the process by which input data passes through the layers of the
+MLP to generate an output. In each layer, the input is transformed linearly using weights
+and biases, followed by the application of an activation function.
+
+\subsubsection{Backpropagation}
+
+Backpropagation is the basic learning algorithm used to train \gls{mlp}. It involves two main
+steps: the forward pass and the backward pass. In the backward pass, the network
+calculates the gradient of the loss function with respect to each weight by the
+chain rule, propagating errors backward from the output layer to the input layer.
+This gradient is then used to update the weights to minimize the loss function,
+typically through gradient descent optimization \cite{zhang2021dive}.
+
+\subsubsection{Dropout}
+
+Dropout is a regularization technique used in fully connected layers to prevent
+overfitting. In standard dropout regularization, a fraction of the nodes in each
+layer is zeroed out, and each layer is then debiased by normalizing by the fraction
+of nodes that were retained as seen in Figure \ref{fig:dropout-example}. Specifically, with dropout
+probability \( p \), each intermediate activation \( h \) is replaced by a random
+variable \( h' \) as follows:
+
+\[
+    h' =
+    \begin{cases}
+        0             & \text{with probability } p   \\
+        \frac{h}{1-p} & \text{with probability } 1-p
+    \end{cases}
+\]
+
+During training, this process prevents the network from becoming too reliant on
+specific neurons, encouraging it to learn more robust features. Typically, dropout
+is disabled at test time. When evaluating a trained model with a new example, we
+do not drop out any nodes and thus do not need to normalize.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/dropout-ex.png}
+    \caption{MLP dropout example taken from \cite{zhang2021dive}.}
+    \label{fig:dropout-example}
+\end{figure}
+
+However, there are some exceptions to this rule. Some researchers \cite{zhang2021dive} use dropout at
+test time as a heuristic for estimating the uncertainty of neural network
+predictions. By running the network multiple times with dropout enabled and
+observing the variance in predictions, one can gauge the confidence of the
+network. If the predictions agree across many different dropout outputs, then
+the network is considered to be more confident in its predictions.
+
+
+\subsection{Convolutional Neural Networks}
+
+\gls{cnn} are a type of deep neural network that
+is particularly well-suited for image classification tasks. \cite{rs-survey-cnns} \gls{cnn} are designed
 to automatically learn spatial hierarchies of features from images, making them
 ideal for tasks such as object detection, image segmentation, and facial recognition.
 
-In the context of the project, our goal is to classify the fire risk of isolated houses
+In the context of the project, since our goal is to classify the fire risk of isolated houses
 based on parameters like the proximity and type of surrouding vegetation. This requires
 identifying specific objects such as the house and the distance between the house and
-the specific types of vegetation. CNNs are well-suited for this task due to their ability
+the specific types of vegetation. \gls{cnn} are well-suited for this task due to their ability
 to automatically learn and detect spatial features from images.
 
-
-\section{Subject of Study}
-
-The ADAI conducted a study on the characterization of vegetation management
-within the immediate surroundings (<50m) of isolated houses in Continental
-Portugal. The evaluation was based on satellite images from 2018 to 2020. This study focuses
-primarily on the surroundings as a means of fire propagation, considering
-only the structure of the existing vegetation, and excluding other factors
-such as orography. The natural fuels can be classified as spontaneous or
-non-spontaneous. Spontaneous fuels are those found in wildlands, while
-non-spontaneous fuels originate from human activities, such as lawns, gardens,
-or vegetable plots.
-The natural fuels included in this study for fire risk classification are
-categorized into three groups: arboreal, shrub, and herbaceous.
-
-\subsection{Fire Risk Assessment}
-The study defined five categories of fire risk: low, moderate, high, very high,
-and extreme. Given the heterogeneity of vegetation around the houses, the
-determination of distance involved several categories: trees, bushes, herbaceous
-plants, and continuous forest. The distance between the main building and
-vegetation was measured for each of these categories, always considering
-the nearest distance for each.
-
-Only vegetation that poses an effective fire risk was considered. For instance,
-well-maintained and watered lawns were excluded from this analysis as they do
-not have the capacity to propagate fire.
-
-The following figure \ref{fig:fire-risk-table} shows the classification of fire risk based on the distance
-between the vegetation and the main building:
+\gls{cnn} utilize three main types of layers to process image data, namely Convolutional layers,
+Pooling layers, and Fully Connected layers. The following figure is
+an example of a simple CNN architecture \ref{fig:cnn-architecture}.
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=1\textwidth]{../Figures/FireRiskClassificationTable.png}
-    \caption{Description of the characteristics of the immediate surroundings of the house and their relationship with the risk categories.}
-    \label{fig:fire-risk-table}
+    \includegraphics[width=0.8\textwidth]{../Figures/example-cnn.png}
+    \caption{Architecture of \gls{cnn} from \cite{cheng2020remote}.}
+    \label{fig:cnn-architecture}
 \end{figure}
 
 
-\section{Data Collection}
-The labeled dataset provided by ADAI consists of over 2000 isolated houses manually
-classified into five fire risk categories, which will be used as the ground truth for
-our model. This dataset also includes the coordinates of the respective houses, which
-will be used to extract the aerial imagery.
+\subsubsection{Convolutional Layers}
+Convolutional layers are the core building blocks of \gls{cnn}, responsible for feature
+extraction from input images. These layers apply learnable filters to the input image,
+which slide across the image's width and height to produce feature maps. Each feature
+map highlights specific features such as edges, textures, or patterns. By stacking
+multiple convolutional layers, the network can learn increasingly complex feature
+representations, from simple edges in the initial layers to intricate shapes and
+objects in the deeper layers.
 
-The DGT (Direção-Geral do Território) offers an open data section with a variety of
-datasets, including aerial photographs of Continental Portugal from 2018 and 2021,
-coinciding with the time period of the ADAI classification study \cite{almeida2020analise}.
-Since the 2021 dataset is incomplete, we will use the 2018 dataset for our study.
-These orthophotos have a high resolution of 25 cm/pixel, which will be beneficial
-for accurately extracting vegetation. Additionally, the images are available in
-both RGB and IRG formats. The IRG format is particularly useful for extracting
-vegetation indices, as vegetation appears in shades of red, making it more easily
-identifiable. The following figures represent two examples of the same aerial photograph
-in RGB and IRG \ref{fig:rgb-irg-comparison}.
+The input to the convolutional layers \( X \in \mathbb{R}^{n \times w \times h} \) consists
+of \( n \) 2-D feature maps of size \( w \times h \). The output
+\( H \in \mathbb{R}^{m \times w' \times h'} \) of the convolutional layers is \( m \) 2-D
+feature maps of size \( w' \times h' \) produced via convolutional kernels \( W \). Here,
+\( W \in \mathbb{R}^{m \times l \times l \times n} \) represents \( m \) trainable filters
+of size \( l \times l \times n \) (typically \( l = 1, 3, \) or \( 5 \)). The entire process
+of convolution is described as follows:
 
+\begin{equation}
+    H = f(W * X + b)
+    \label{eq:convolution}
+\end{equation}
+where \( * \) denotes the 2-D convolution operation, and \( b \) represents the
+\( m \)-dimensional bias term. In general, a nonlinear activation function
+\( f \) is applied after the convolution operation. As the convolutional structure
+deepens, the convolutional layers can capture different levels of features from the
+input feature maps.
+
+
+\subsubsection{Pooling Layers}
+Pooling layers are used to reduce the spatial dimensions of the feature maps, which
+helps to decrease the computational load and the number of parameters in the network \cite{poolinglayers-ref}.
+The two most common types of pooling are max pooling, which
+partitions the input feature map into a set of non-overlapping regions and
+outputs the maximum value from each region, and average pooling, which
+outputs the average value within each region \ref{fig:max-pool-example}.
 
 \begin{figure}[ht]
     \centering
-    \begin{minipage}[b]{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/houseExampleRGB.png}
-        \caption{RGB format}
-        \label{fig:rgb}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[b]{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/houseExampleIRG.png}
-        \caption{IRG format}
-        \label{fig:irg}
-    \end{minipage}
-    \caption{Aerial photographs of the same location in RGB and IRG formats respectively.}
-    \label{fig:rgb-irg-comparison}
+    \includegraphics[width=1\textwidth]{../Figures/pooling-exs.png}
+    \caption{Max Pooling and Average Pooling examples from \cite{vedantkumar}.}
+    \label{fig:max-pool-example}
 \end{figure}
+
+The pooling operation provides several benefits:
+\begin{itemize}
+    \item \textbf{Dimensionality Reduction:} By reducing the size of the feature maps, pooling layers help to decrease the computational cost and the risk of overfitting.
+    \item \textbf{Translation Invariance:} Makes the network more robust to small translations or distortions in the input image. This means that the network can better recognize objects regardless of their location within the image.
+\end{itemize}
+
+\subsubsection{Fully Connected Layers}
+Fully connected layers, also known as dense layers, are used towards the end of a
+CNN to integrate the high-level features extracted by the convolutional and pooling
+layers. In these layers, each neuron is connected to every neuron in the previous
+layer like an MLP, allowing for the combination and processing of features to produce the final
+output. This can be a class score for classification tasks, bounding box coordinates
+for object detection, or pixel-wise labels for segmentation tasks. Fully connected
+layers typically use activation functions like ReLU to introduce non-linearity, enabling
+the network to learn complex mappings between inputs and outputs.
+
+These layers process their input \( \tilde{X} \) with
+a linear transformation by weights \( \tilde{W} \) and bias \( \tilde{b} \), and then
+map the output of the linear transformation through a nonlinear activation function \( f \).
+The entire process can be formulated as:
+
+\begin{equation}
+    y = f(\tilde{W} \cdot \tilde{X} + \tilde{b})
+    \label{eq:fully-connected}
+\end{equation}
+
+In classification tasks, to output the probability of each class, a softmax classifier
+is typically connected to the last fully connected layer. The softmax classifier
+normalizes the output \( y \in \mathbb{R}^c \) (where \( c \) is the number of classes)
+to a probability distribution between 0 and 1. This can be described as:
+
+\begin{equation}
+    P(y_i) = \frac{e^{y_i}}{\sum_{j=1}^{c} e^{y_j}}
+    \label{eq:softmax}
+\end{equation}
+
+The output of the softmax classifier represents the probability that the given input
+image belongs to each class. To avoid overfitting, the dropout method can be applied
+to the fully connected layers, as these layers usually contain a large number of
+parameters.
+
+
+\subsubsection{Modern CNN Architectures}
+Modern \gls{cnn} have significantly advanced the field
+of computer vision and are highly suitable for complex image analysis tasks such as our
+classification problem at hand. By leveraging the unique capabilities of existing advanced
+architectures, we can help contributing for our fire risk assessment model.
+
+Some of the most popular CNN architectures include AlexNet \cite{krizhevsky2012imagenet}, VGGNet
+\cite{simonyan2014very}, ResNet \cite{he2016deep}, DenseNet \cite{huang2017densely} and Inception \cite{szegedy2015going},
+they have introduced several innovations that can be beneficial for our classification.
+For example, ResNet learns residual functions with reference to the layer inputs rather
+than learning unreferenced functions. Instead of hoping each few stacked layers directly
+fit a desired underlying mapping, residual networks let these layers fit a residual mapping.
+They stack residual blocks to form a deep network that can be trained using standard
+backpropagation techniques. This architecture has proven to be highly effective in training
+very deep neural networks \cite{DBLP:journals/corr/HeZRS15}.
+
+While image segmentation could potentially aid in easier identification of critical
+features like vegetation and structures around houses, it requires extensive labeled
+data for training. Currently, our dataset is specifically labeled for fire risk classification
+rather than detailed image segmentation. This limitation makes pursuing segmentation techniques
+challenging without additional labeled data.
+
+Given these considerations, our focus remains on leveraging the strengths of CNN architectures
+for classification tasks related to fire risk assessment. This approach allows us to effectively
+utilize the available labeled data to predict fire risk based on identified features without
+the need for extensive segmentation.
+
+\subsubsection{Transfer Learning}
+
+Transfer learning is a machine learning technique where a model trained on one task and
+is leveraged as a starting point for a model on a second related task. The idea behind transfer
+learning is to transfer knowledge learned from a source domain (task) to a target domain (task)
+to improve learning efficiency and performance, especially when the target dataset is small or
+labeled data is limited. There are two main approaches to transfer learning:
+
+\textbf{Feature Extraction:} In feature extraction, the learned features (representations)
+from the pre-trained model are used directly as inputs for the new model. The early layers of
+the pre-trained model, which capture generic features applicable to many tasks (like edges, textures),
+are frozen (not trained) while the later layers are replaced or fine-tuned for the new task.
+
+\textbf{Fine-tuning:} Fine-tuning extends feature extraction by unfreezing and jointly training
+some or all layers of the pre-trained model along with the new task-specific layers. This allows
+the model to adapt more specifically to the nuances of the target task while still benefiting from
+the pre-trained weights and learned features.
+
+Transfer learning is widely used in \gls{dl}, particularly with \gls{cnn}
+trained on large-scale datasets like ImageNet \cite{deng2009imagenet}. By initializing a model with
+weights pre-trained on such datasets, transfer learning accelerates convergence and improves
+generalization on new datasets with fewer labeled examples. This approach has been pivotal in
+achieving state-of-the-art results in various domains, including image classification, object
+detection, and natural language processing.
+
+\subsection{Ensemble Methods}
+
+In addition to the modern CNN architectures discussed, ensemble methods can provide
+significant improvements in classification tasks, particularly in complex domains
+such as our fire risk assessment. Ensemble methods work by combining multiple models
+to produce a single, more accurate model. The idea is that by aggregating the
+predictions of multiple models, the overall performance can be enhanced, leading to
+better generalization and robustness.
+
+There are several ways ensembles can be applied. One example, that could be relevant to our problem is training
+models separately on different parameters. For instance, in fire risk classification,
+which is influenced by various factors such as the distance of a house from different
+types of vegetation, training individual models for each parameter can improve the
+overall classification accuracy. This approach helps pinpoint issues in the classification
+process and enhances the overall model's performance.
+
+Using a single model to handle all the specific parameters might struggle to
+find patterns due to the complexity of the data. By training separate CNN models for
+different identification tasks and then combining their outputs in a final MLP
+(Multi-Layer Perceptron) model, we can more effectively classify the fire risk of a house.
+This ensemble approach allows each CNN to specialize in a specific aspect of the data, and
+the final MLP can integrate these specialized insights to produce a more accurate and
+reliable classification.
+
+
+
+\subsection{Autoencoders}
+
+Autoencoders are a type of artificial neural network used for unsupervised learning
+of efficient codings. The primary goal of an autoencoder is to learn a representation
+(encoding) for a set of data, typically for the purpose of dimensionality reduction. An
+autoencoder consists of two main components: the encoder and the decoder \cite{goodfellow2016deep}.
+
+The encoder compresses the input into a latent-space representation, which is a
+lower-dimensional space that captures the essential features of the input data.
+This latent space can be thought of as a bottleneck where only the most important
+aspects of the data are retained. The process of encoding can be formulated as:
+\begin{equation}
+    h = f (W \cdot x + b)
+    \label{eq:enconding}
+\end{equation}
+where \(h \in \mathbb{R}^n\) is the output of the hidden layers, \(f\) denotes a
+nonlinear mapping, \(W \in \mathbb{R}^{n \times m}\) stands for the encoding weight
+matrix, \(x \in \mathbb{R}^m\) denotes the input of the autoencoder, and \(b \in \mathbb{R}^n\)
+is the bias vector \cite{cheng2020remote}.
+
+The decoder then attempts to reconstruct the original input data from this compressed
+representation. The decoding process is the inverse of encoding and can be formulated as:
+\begin{equation}
+    \tilde{x} = f (W' \cdot h + b')
+    \label{eq:decoding}
+\end{equation}
+where \(\tilde{x} \in \mathbb{R}^m\) represents the reconstructed output,
+\(W' \in \mathbb{R}^{m \times n}\) is the decoding weight matrix, and \(b' \in \mathbb{R}^m\)
+stands for the bias vector. The network is trained to minimize the difference between the
+input data and the reconstructed output, often using a loss function such as mean squared
+error. Through this process, the autoencoder learns to extract the most significant
+features of the input data.
+
+Autoencoders have wide-ranging applications, including anomaly detection, data compression,
+image processing, and feature extraction. They are a powerful tool enabling the discovery
+of meaningful patterns and structures within data without the need for labeled examples.
+
+\subsection{Generative Adversarial Networks}
+
+\gls{gan} are a powerful and innovative approach in the
+field of machine learning, particularly for generating realistic data. \gls{gan} consist of
+two neural networks, the generator (G) and the discriminator (D), which are trained
+simultaneously through a process known as adversarial training as seen in Figure \ref{fig:gan}.
+
+The generator's role is to create synthetic data that resembles real data, while the
+discriminator's job is to distinguish between real and synthetic data.
+Over time, both networks improve in their respective tasks, leading to the generation
+of highly realistic data by the generator.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/GAN-ARCH.png}
+    \caption{Illustration of GAN architecture with Generator (G) and Discriminator (D) from \cite{app12147075}.}
+    \label{fig:gan}
+\end{figure}
+
+The generator takes a random noise vector \(z\) from a prior distribution \(p_z(z)\) and
+transforms it into data samples \(G(z; \theta_g)\), where \(\theta_g\) represents the
+parameters of the generator. The discriminator, on the other hand, evaluates these
+generated samples along with real samples from the true data distribution \(p_{data}(x)\) and
+outputs a probability \(D(x; \theta_d)\) that the input is a real data sample, with
+\(\theta_d\) representing the parameters of the discriminator.
+
+The training of \gls{gan} involves a minimax game with the following objective function:
+
+\begin{equation}
+    \min_G \max_D V(G, D) = \mathbb{E}_{x \sim p_{data}(x)}[\log D(x)] + \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))]
+\end{equation}
+
+Here, the discriminator \(D\) aims to maximize the probability of correctly identifying
+real and fake samples, while the generator \(G\) aims to minimize the discriminator's
+ability to distinguish between the two \cite{NIPS2014_5ca3e9b1}. This adversarial process continues until the
+discriminator cannot differentiate between real and synthetic data with better than random
+guessing accuracy.
+
+\gls{gan} have been successfully applied in various fields, such as image generation,
+style transfer, and data augmentation. Despite their success, training them can be
+challenging due to issues like mode collapse and instability.
+
+They have opened new possibilities for
+generating high-quality synthetic data that closely mimics real-world data, making them
+a significant tool in the arsenal of modern machine learning methods.
+
+
+\subsection{Loss Functions}
+Loss functions measure the difference between predicted and actual values during model training.
+These functions play a crucial role in guiding the optimization
+process towards improving model accuracy and generalization. The choice of an appropriate
+loss function depends on the nature of the task, whether it involves regression, binary
+classification, or multi-class classification. This section explores several key loss
+functions commonly used in the training of neural networks.
+
+\subsubsection{Mean Squared Error (MSE)}
+Mean Squared Error is widely used for regression tasks. It calculates the average
+of the squared differences between predicted and actual values:
+\begin{equation}
+    \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+    \label{eq:mse}
+\end{equation}
+where \( y_i \) is the actual value and \( \hat{y}_i \) is the predicted value. MSE
+is sensitive to outliers due to the squaring term, making large errors more significant.
+
+\subsubsection{Cross-Entropy Loss}
+Cross-Entropy Loss, also known as log loss, is used for classification tasks.
+It measures the performance of a classification model whose output is a probability
+value between 0 and 1:
+
+\begin{equation}
+    \text{Cross-Entropy Loss} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
+    \label{eq:cross-entropy}
+\end{equation}
+where \( y_i \) is the actual binary label and \( \hat{y}_i \) is the predicted probability.
+For multi-class classification, a generalized version called categorical cross-entropy is used.
+
+\subsubsection{Categorical Cross-Entropy Loss}
+Categorical Cross-Entropy Loss is used for multi-class classification tasks where each
+sample can belong to one of several classes, aligning to our problem.
+It is an extension of the binary cross-entropy loss:
+
+\begin{equation}
+    \text{Categorical Cross-Entropy Loss} = -\sum_{i=1}^{n} \sum_{j=1}^{k} y_{ij} \log(\hat{y}_{ij})
+    \label{eq:categorical-cross-entropy}
+\end{equation}
+where \( y_{ij} \) is a binary indicator (0 or 1) if class label \( j \) is the correct classification for observation \( i \), \( \hat{y}_{ij} \) is the predicted probability that observation \( i \) belongs to class \( j \), and \( k \) is the number of classes. This loss function encourages the predicted probability to be high for the correct class and low for all other classes.
+
+
+\subsection{Optimization Algorithms}
+Optimization algorithms play a crucial role in training \gls{dl} models by
+minimizing the loss function and adjusting the model's parameters. These algorithms
+iteratively update the weights of the neural network to find the set of parameters
+that best fits the training data. The choice of optimization algorithm can significantly
+impact the model's performance and training efficiency \cite{ruder2016overview}.
+
+\subsubsection{Gradient Descent}
+
+Gradient Descent is one of the most fundamental optimization algorithms. It works
+by calculating the gradient of the loss function with respect to the model parameters
+and then updating the parameters in the opposite direction of the gradient. The update
+rule for Gradient Descent is given by:
+
+\begin{equation}
+    \theta = \theta - \eta \nabla_\theta J(\theta)
+\end{equation}
+where \( \theta \) represents the model parameters, \( \eta \) is the learning rate,
+and \( \nabla_\theta J(\theta) \) is the gradient of the loss function \( J \) with respect
+to \( \theta \). While effective, standard Gradient Descent can be slow and may get stuck
+in local minima.
+
+\subsubsection{Stochastic Gradient Descent (SGD)}
+
+Stochastic Gradient Descent (SGD) is a variation of Gradient Descent that updates the
+model parameters using a single training example or a small batch of examples at each
+iteration. This introduces noise into the optimization process, which can help the
+algorithm escape local minima and converge faster. The update rule for SGD is:
+
+\begin{equation}
+    \theta = \theta - \eta \nabla_\theta J(\theta; x^{(i)}, y^{(i)})
+\end{equation}
+where \( (x^{(i)}, y^{(i)}) \) represents a single training example. While SGD can converge
+faster than batch Gradient Descent, it may result in a noisier optimization process.
+
+\subsubsection{Adam}
+
+The Adam (Adaptive Moment Estimation) optimizer combines the advantages of two other
+popular optimization algorithms: AdaGrad and RMSProp \cite{ruder2016overview}. Adam maintains adaptive learning
+rates for each parameter by computing the first and second moments of the gradients.
+The update rule for Adam is:
+
+\begin{equation}
+    m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t
+\end{equation}
+\begin{equation}
+    v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2
+\end{equation}
+\begin{equation}
+    \hat{m}_t = \frac{m_t}{1 - \beta_1^t}
+\end{equation}
+\begin{equation}
+    \hat{v}_t = \frac{v_t}{1 - \beta_2^t}
+\end{equation}
+\begin{equation}
+    \theta_t = \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
+\end{equation}
+where \( g_t \) is the gradient at time step \( t \), \( m_t \) and \( v_t \) are the first
+and second moment estimates, \( \beta_1 \) and \( \beta_2 \) are the exponential decay rates
+for these estimates, and \( \epsilon \) is a small constant for numerical stability. Adam is
+widely used because of its efficiency and effectiveness in handling sparse gradients and
+non-stationary objectives.
+
+
+\section{Fundamentals of Aerial Photographs: RGB and IRG}
+There are several types of images used in remote sensing, each capturing different
+aspects of the electromagnetic spectrum. The two important types of images available for our
+classification are \gls{rgb} and \gls{irg} images obtained from aerial flights and satellite imagery.
+
+\subsection{RGB Images}
+\gls{rgb} imagery is a standard image format that captures visible light using three color channels:
+red, green, and blue. These images are similar to what the human eye perceives and are widely used
+in various applications, including mapping, land cover classification, and environmental monitoring.
+\gls{rgb} images provide valuable information about the visual characteristics of vegetation, such
+as color and texture.
+
+\subsection{IRG Images}
+\gls{irg} images are a type of false-color composite that combines the green,
+red, and near-infrared (NIR) bands of the electromagnetic spectrum \ref{fig:spectrum-example}. In \gls{irg} images, the NIR
+band is assigned to the red channel, the green band to the green channel, and the red band
+to the blue channel. This false-color combination is particularly advantageous for vegetation
+analysis because plants reflect a significant amount of infrared light, which is not visible
+to the human eye but can be detected by sensors. The infrared reflectance is a key indicator
+of plant health and vigor, as healthy vegetation reflects more infrared light compared to
+stressed or unhealthy plants.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/NIR.png}
+    \caption{Electromagnetic spectrum from \cite{nir_spectroscopy_nutshell}.}
+    \label{fig:spectrum-example}
+\end{figure}
+
+The benefits of the \gls{irg} image for vegetation analysis are due to several technical reasons:
+
+\textbf{Chlorophyll Reflectance Properties}:
+Chlorophyll in plant leaves strongly absorbs light in the red and blue portions of the spectrum for use in
+photosynthesis, but reflects green light, which is why plants appear green to our eyes. In the near-infrared
+region, however, chlorophyll and the internal structure of the leaves cause significant reflection. This
+reflectance increases with the density and health of the vegetation. By utilizing the NIR band, \gls{irg} images
+can capture this high reflectance, highlighting areas of healthy vegetation more clearly than \gls{rgb} images as
+seen in Figure \ref{fig:rgbxnirxnvdi}.
+
+\textbf{Vegetation Indices}:
+The combination of NIR and red bands is foundational for calculating vegetation indices,
+such as the Normalized Difference Vegetation Index (NDVI) which can be formulated as \ref{eq:ndvi}.
+
+\begin{equation}
+    \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}
+    \label{eq:ndvi}
+\end{equation}
+where NIR and Red represent the reflectance values in the near-infrared and red bands, respectively.
+NDVI has been widely used in remote sensing \cite{huang2021commentary} and it might prove
+worthy to use for our classification problem, if we are having problems in differentiating the health
+of the vegetation, as it provides a quantifiable measure of vegetation health. High NDVI values indicate healthy,
+photosynthetically active vegetation, while lower values can indicate stressed or sparse vegetation. The \gls{irg} composite,
+by emphasizing the NIR band, directly supports the visualization and calculation of such indices.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{../Figures/RGBxNIRxNVDI.png}
+    \caption{\gls{rgb}, NIR and NDVI images of same crop field captured with rotary platform small unmanned aerial system (sUAS) from \cite{iastate2016imagery}.}
+    \label{fig:rgbxnirxnvdi}
+\end{figure}
+
+\textbf{Stress Detection}:
+Plants under stress (due to disease, drought, or other factors) exhibit reduced chlorophyll activity
+and altered cell structure, leading to changes in their reflectance properties. Stressed plants typically
+reflect less NIR light and more red light than healthy plants \cite{BUITRAGO201622}. The \gls{irg} images accentuate these differences,
+allowing for the early detection of plant stress before visible symptoms appear, thus providing critical
+information for vegetation monitoring and management.
+
+Therefore, making use of \gls{irg} images can provide valuable insights to our classifier as
+it can help in distinguishing between healthy and unhealthy vegetation, which is a critical
+factor in the assessment of fire risk.

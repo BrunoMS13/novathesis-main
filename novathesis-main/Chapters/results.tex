@@ -1,0 +1,1124 @@
+\chapter{Results}
+\label{cha:results}
+
+In this chapter, we present the results obtained from the fire risk classification 
+experiments. The analysis is structured to evaluate the performance of individual 
+models before moving to the ensemble approach. The primary goal is to assess the 
+ability of different architectures to classify fire risk levels accurately across 
+various input configurations and training strategies.
+
+We evaluate three deep learning architectures individually:
+\begin{itemize}
+    \item ResNet50
+    \item DenseNet161
+    \item EfficientNet-B5
+\end{itemize}
+
+Each model is tested using three different input configurations:
+\begin{itemize}
+    \item IRG images (Infrared, Red, Green)
+    \item RGB images (Red, Green, Blue)
+    \item RGB images with NDVI as a fourth channel (Normalized Difference Vegetation Index)
+\end{itemize}
+
+These configurations allow us to determine the most effective input format 
+for fire risk classification. The models are trained across multiple learning 
+rates and weight decays using the AdamW optimizer, which is widely used in 
+deep learning due to its improved stability and convergence properties compared 
+to traditional optimizers. Given its effectiveness, we did not experiment with 
+alternative optimizers. If the results for an architecture are unsatisfactory, 
+we further experiment with a gradual unfreezing strategy, as is the case for 
+DenseNet161. It is also important to note that the models results are averaged
+over three runs to ensure robustness and reliability.
+
+Following the evaluation of individual architectures, we present the results of 
+different ensemble models combining ResNet50, DenseNet161, and EfficientNet-B5 to 
+leverage the strengths of each network. The ensemble approach is expected to enhance 
+classification performance by integrating complementary decision-making processes 
+from the individual models.
+
+Finally, we analyze failure cases in the ensemble model's final results. Specifically, 
+we focus on instances where all models in the ensemble incorrectly predict an average 
+fire risk when, in reality, a very high fire risk is present. Understanding these 
+failure cases is crucial for improving model robustness and minimizing false negatives 
+in real-world applications.
+
+\section{ResNet50 Results}
+
+%                                                                  %
+% ------------------------- RESNET50 IRG ------------------------- %
+%                                                                  %
+The initial experiments aim to evaluate how well ResNet50 adapts to IRG images across different 
+learning rates. Figure \ref{fig:r50_results} presents the training and validation performance for 
+IRG images, showing trends in both loss and accuracy. Since the results for RGB and RGB+NDVI 
+images were similar, only the IRG graphs are displayed for clarity.
+
+TODO FORGE IMAGE PLS
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../Figures/resnet50_averages.png}
+    \caption{Average training and validation performance of ResNet50 across different learning rates with IRG images only.}
+    \label{fig:r50_results}
+\end{figure}
+
+As seen in Figure \ref{fig:r50_results}, models trained with higher learning rates 
+show more unstable validation loss. In particular, $1\times10^{-4}$ shows significant 
+fluctuations, indicating instability and potential overfitting. Despite achieving lower 
+training loss, its validation accuracy stagnates, reinforcing the idea that overly 
+aggressive learning rates lead to poor generalization.
+
+In contrast, lower learning rates ($1\times10^{-5}$ and $5\times10^{-6}$) demonstrate 
+smoother and more stable validation loss trends. This suggests that smaller 
+learning rates enable a more controlled optimization process, reducing drastic 
+fluctuations and improving generalization. Overall, the learning rates of $1\times10^{-5}$ 
+and $5\times10^{-6}$ appear to have the best balance between validation and training performance.
+
+\subsection{IRG Results}
+
+\subsubsection{Learning Rate Comparisons}
+
+The results presented in Table \ref{tab:resnet50_irg} provide clearer
+insights into the model's performance, with the learning rates varying from 
+$1\times10^{-4}$ to $5\times10^{-6}$.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4 & 75.86          & 0.4964 & 83.87 & 0.3552 & 75.39          & 0.6354 \\
+        5e-5 & 75.84          & 0.4973 & 84.44 & 0.3583 & 75.90          & 0.7280 \\
+        1e-5 & \textbf{83.62} & 0.3675 & 87.18 & 0.3011 & 80.13          & 0.7621 \\
+        5e-6 & 79.45          & 0.4260 & 82.07 & 0.3944 & \textbf{80.82} & 0.7823 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with IRG images across different learning rates.}
+    \label{tab:resnet50_irg}
+\end{table}
+
+One key observation from Table \ref{tab:resnet50_irg} is that lower learning 
+rates tend to yield better validation performance. A learning rate of 
+$1\times10^{-5}$ achieves the highest validation accuracy (\textbf{83.62\%}), outperforming 
+higher values such as $1\times10^{-4}$ (\textbf{75.86\%}) and $5\times10^{-5}$ (\textbf{79.45\%}). 
+This suggests that larger learning rates may cause the model to converge too quickly to 
+suboptimal solutions, limiting generalization.
+
+Interestingly, the lowest learning rate ($5\times10^{-6}$) achieves the highest test 
+accuracy (\textbf{80.82\%}), indicating that very small learning rates may facilitate 
+more stable convergence. However, its validation accuracy does not match that of 
+$1\times10^{-5}$, which suggests a possible trade-off between validation and test performance.
+
+\subsubsection{Weight Decay Comparisons}
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0    & 79.45 & 0.4260 & 82.07 & 0.3940 & 80.82 & 0.7823 \\
+        1e-2 & \textbf{81.32} & 0.4313 & 83.94 & 0.3568 & \textbf{82.90} & 0.8024 \\
+        1e-4 & 80.17 & 0.4179 & 81.06 & 0.4106 & 80.31 & 0.7711 \\
+        1e-6 & 79.88 & 0.4185 & 83.08 & 0.3918 & 80.57 & 0.7791 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with IRG images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:resnet50_wd_irg}
+\end{table}
+
+From the results in Table \ref{tab:resnet50_wd_irg}, a weight decay of $0.01$ 
+achieves the highest test accuracy (\textbf{82.90\%}) and test F1 score 
+(\textbf{0.8024}). This is a clear improvement over using no weight decay, 
+which results in a test accuracy of \textbf{80.82\%} and a test F1 score 
+of \textbf{0.7820}. This suggests that applying weight decay likely 
+improves generalization by introducing regularization during training.
+
+The lower weight decay of $1\times10^{-6}$ achieves a similar test accuracy (\textbf{80.57\%}) 
+but does not outperform $0.01$. This indicates that while some regularization is beneficial, excessively small 
+weight decay values may not provide significant advantages. Overall, a weight decay of $0.01$ appears to be 
+the best choice for this setting.
+
+
+%                                                                  %
+% ------------------------- RESNET50 RGB ------------------------- %
+%                                                                  %
+
+\subsection{RGB Results}
+
+The results for ResNet50 trained on RGB images (Table \ref{tab:resnet50_rgb}) 
+follow a similar trend to the IRG experiments, where lower learning rates 
+generally yield better validation and test performance. The highest validation 
+accuracy of \textbf{80.75\%} is achieved at a learning rate of $5\times10^{-6}$, with a 
+corresponding test accuracy of \textbf{80.05\%} and an F1 score of \textbf{0.7736}. 
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4 & 75.72 & 0.4787 & 77.90 & 0.4684 & 75.91 & 0.7436 \\
+        5e-5 & 75.43 & 0.5077 & 68.57 & 0.5719 & 78.24 & 0.7469 \\
+        1e-5 & 80.60 & 0.4246 & 80.63 & 0.4151 & 78.50 & 0.7562 \\
+        5e-6 & 80.75 & 0.4131 & 81.07 & 0.3983 & 80.05 & 0.7736 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with RGB images across different learning rates.}
+    \label{tab:resnet50_rgb}
+\end{table}
+
+This suggests once more that smaller learning rates contribute to more stable training and improved 
+generalization. In contrast, higher learning rates such as $1\times10^{-4}$ and 
+$5\times10^{-5}$ exhibit lower validation accuracy (\textbf{75.72\%} and \textbf{75.43\%}, respectively) 
+and higher validation loss, indicating less stable optimization. Notably, the learning 
+rate of $5\times10^{-6}$ provides a strong balance between validation accuracy (\textbf{80.75\%}) 
+and test accuracy (\textbf{80.05\%}), similar to the best-performing IRG configuration.
+
+\subsubsection{Weight Decay Comparisons}
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0    & 80.75 & 0.4131 & 81.07 & 0.3983 & 80.05 & 0.7736 \\
+        1e-2 & 82.18 & 0.4173 & 82.36 & 0.3733 & 80.83 & 0.7730 \\
+        1e-4 & 79.43 & 0.4255 & 80.41 & 0.3832 & 80.31 & 0.7680 \\
+        1e-6 & 80.45 & 0.4482 & 82.79 & 0.3767 & 80.42 & 0.7710 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with RGB images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:resnet50_wd_rgb}
+\end{table}
+
+The weight decay experiments (Table \ref{tab:resnet50_wd_rgb}) show that moderate 
+regularization improves performance, similar to the IRG results. A weight decay of 
+$0.01$ achieves the highest validation accuracy (\textbf{82.18\%}) and the highest test accuracy 
+(\textbf{80.83\%}), reinforcing the importance of regularization for improved generalization. 
+
+The model trained with no weight decay ($WD=0$) still performs relatively 
+well, with a test accuracy of \textbf{80.05\%} and an F1 score of \textbf{0.7736}. However, as seen 
+previously, weight decay helps to control overfitting and stabilize validation performance. 
+Lower weight decay values, such as $1\times10^{-6}$, lead to slightly increased validation 
+loss (\textbf{0.4482}) compared to $0.01$ (\textbf{0.4173}), further supporting the benefits of regularization.
+
+
+%                                                                         %
+% ------------------------- RESNET50 RGB + NDVI ------------------------- %
+%                                                                         %
+
+\subsection{RGB + NDVI Results}
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4 & 77.73 & 0.4566 & 82.83 & 0.3851 & 74.35 & 0.6883 \\
+        5e-5 & 79.17 & 0.4572 & 77.90 & 0.4603 & 72.80 & 0.7295 \\
+        1e-5 & \textbf{80.17} & 0.4682 & 84.67 & 0.3448 & 77.47 & 0.6863 \\
+        5e-6 & 78.59 & 0.4455 & 80.24 & 0.4151 & 77.72 & 0.6958 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with RGB images + NDVI across different learning rates.}
+    \label{tab:resnet50_rgb_ndvi}
+\end{table}
+
+When incorporating NDVI alongside RGB inputs, the results (Table \ref{tab:resnet50_rgb_ndvi}) 
+show some performance variation across learning rates. The highest validation accuracy 
+(\textbf{80.17\%}) is achieved at $1\times10^{-5}$, with a corresponding test accuracy of 
+\textbf{77.47\%}.
+
+The lowest learning rate ($5\times10^{-6}$) results in a test accuracy of \textbf{77.72\%} 
+and an F1 score of \textbf{0.6958}. Additionally, higher learning rates, such as $1\times10^{-4}$, 
+exhibit slightly lower validation and test accuracies (\textbf{77.73\%} and \textbf{74.35\%}).
+
+\subsubsection{Weight Decay Comparisons}
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0    & 78.59 & 80.24 & 0.4455 & 0.4151 & 77.72 & 0.6958 \\
+        1e-2 & 80.60 & 78.91 & 0.4387 & 0.4410 & 73.84 & 0.5950 \\
+        1e-4 & 78.45 & 80.49 & 0.4390 & 0.4232 & 76.95 & 0.6740 \\
+        1e-6 & 75.72 & 80.31 & 0.4688 & 0.4225 & 73.84 & 0.5747 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with RGB images + NDVI across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:resnet50_wd_rgb_ndvi}
+\end{table}
+
+The weight decay results present in Table \ref{tab:resnet50_wd_rgb_ndvi} show that regularization significantly 
+affects ResNet50's generalization when trained with RGB+NDVI images. A weight decay of $0.01$ achieves 
+the highest validation accuracy (\textbf{80.60\%}), though its test accuracy (\textbf{73.84\%}) is lower 
+than the no-weight-decay setting.
+
+The weight decay might not be the most effective regularization ability to leverage 
+NDVI-enhanced features, as the best test results are obtained without any weight decay.
+
+
+\section{DenseNet161 Results}
+
+Figure \ref{fig:d161_results} presents the training and validation performance for 
+IRG images, showing trends in both loss and accuracy. Since the results for RGB and RGB+NDVI 
+images were similar, only the IRG graphs are displayed for clarity.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../Figures/densenet161_averages.png}
+    \caption{Average training and validation performance of Densenet161 across different learning rates with IRG images only.}
+    \label{fig:d161_results}
+\end{figure}
+
+Compared to ResNet50 \ref{fig:r50_results}, DenseNet exhibits more fluctuations 
+in validation loss, even at lower learning rates. While higher learning rates 
+still lead to instability, the expected smoothness at lower learning rates 
+($1\times10^{-5}$ and $5\times10^{-6}$) is not as evident. This suggests that 
+DenseNet may require additional regularization techniques.
+
+Despite these fluctuations, the model still shows a general trend of improving 
+accuracy over time. However, the inconsistent validation performance highlights 
+the need for further tuning.
+
+\subsection{IRG Results}
+
+%                                                                     %
+% ------------------------- DENSENET161 IRG ------------------------- %
+%                                                                     %
+
+The results for DenseNet161 trained on IRG images (Table \ref{tab:densenet161_irg}) show 
+that lower learning rates contribute to improved validation performance 
+and generalization. The best validation accuracy is achieved at a learning rate of 
+$1\times10^{-5}$, reaching \textbf{82.76\%}, while the corresponding with a lower test accuracy 
+of \textbf{77.72\%} with an F1 score of \textbf{0.7514}. 
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4  & 78.74           & 0.4428 & 82.36 & 0.3940 & 72.80 & 0.7137 \\
+        5e-5  & 80.03           & 0.4212 & 81.21 & 0.4149 & 76.17 & 0.6733 \\
+        1e-5  & \textbf{82.76}  & 0.3994 & 83.87 & 0.3578 & 77.72 & 0.7514 \\
+        5e-6  & 79.74           & 0.4454 & 82.18 & 0.3889 & 78.76 & 0.7617 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Densenet161 with RGB images across different learning rates.}
+    \label{tab:densenet161_irg}
+\end{table}
+
+At an even smaller learning rate of $5\times10^{-6}$, the test accuracy reaches 
+its highest value of \textbf{78.76\%}, along with a slightly improved F1 score of 
+\textbf{0.7617}. This suggests that for this dataset and architecture, smaller learning rate allows 
+for a more gradual and stable optimization process. 
+
+However, higher learning rates such as $1\times10^{-4}$ and $5\times10^{-5}$ result 
+in lower validation accuracy (\textbf{78.74\%} and \textbf{80.03\%}, respectively) and 
+test accuracy (\textbf{72.80\%} and \textbf{76.17\%}), indicating that faster convergence 
+may lead to suboptimal solutions.
+
+Overall, the results indicate that learning rates in the range of $1\times10^{-5}$ to $5\times10^{-6}$ 
+possess the best balance between training stability and generalization, producing the highest 
+test performances.
+
+
+\subsubsection{Weight Decay Comparisons}
+
+The effect of weight decay on DenseNet161's performance with IRG images is summarized in 
+Table \ref{tab:densenet161_wd_irg}. Unlike the learning rate analysis, where lower values 
+provided clear benefits, weight decay shows a more complex impact on model performance.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0     & \textbf{82.76}  & 0.3994 & 83.87 & 0.3578 & 77.72 & 0.7514 \\
+        1e-2  & 81.03           & 0.4195 & 79.34 & 0.4387 & 82.47 & 0.7956 \\
+        1e-4  & 80.17           & 0.4319 & 80.49 & 0.4193 & 81.35 & 0.7907 \\
+        1e-6  & 77.59           & 0.4281 & 77.83 & 0.4558 & 78.76 & 0.7421 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Densenet161 with IRG images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:densenet161_wd_irg}
+\end{table}
+
+A weight decay of $0.01$ achieves the highest test accuracy (\textbf{82.47\%}) and the best 
+test F1 score (\textbf{0.7956}), indicating that moderate regularization improves 
+generalization. This suggests that proper weight decay helps prevent overfitting 
+and stabilizes training.
+
+Interestingly, training with no weight decay ($WD=0$) yielded the highest validation 
+accuracy (\textbf{82.76\%}), but its test accuracy is a lot lower (\textbf{77.72\%}).
+
+At smaller weight decay values, such as $1\times10^{-6}$, both validation accuracy 
+(\textbf{77.59\%}) and test accuracy (\textbf{78.76\%}) decrease, suggesting that too 
+little regularization leads to reduced stability in training. A weight decay of 
+$1\times10^{-4}$ seems to have the best balance with a test accuracy of \textbf{81.35\%} and an 
+F1 score of \textbf{0.7907}, making it a strong alternative.
+
+
+%                                                                     %
+% ------------------------- DENSENET161 RGB ------------------------- %
+%                                                                     %
+
+\subsection{RGB Results}
+
+The results for DenseNet161 trained on RGB images (Table \ref{tab:densenet161_rgb}) 
+show once again that lower learning rates contribute to better generalization, following a 
+similar trend observed in other configurations. The highest validation accuracy 
+(\textbf{80.17\%}) is achieved at a learning rate of $5\times10^{-6}$, which also 
+results in the best test accuracy (\textbf{78.76\%}) and a solid F1 score of 
+\textbf{0.7485}.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4 & 78.59          & 0.4244 & 80.02 & 0.4248 & 76.94 & 0.7138 \\
+        5e-5 & 76.58          & 0.4461 & 72.53  & 0.5401 & 74.36 & 0.7258 \\
+        1e-5 & 77.44          & 0.4523 & 79.55  & 0.4285 & 75.13 & 0.7273 \\
+        5e-6 & \textbf{80.17} & 0.4245 & 80.56 & 0.4098 & \textbf{78.76} & 0.7485 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Densenet161 with RGB images across different learning rates.}
+    \label{tab:densenet161_rgb}
+\end{table}
+
+Higher learning rates, such as $1\times10^{-4}$ and $5\times10^{-5}$, yield lower 
+validation accuracies (\textbf{78.59\%} and \textbf{76.58\%}, respectively) and 
+suboptimal test performance (\textbf{76.94\%} and \textbf{74.36\%}). The instability 
+in these models is further reflected in the higher validation loss values. 
+
+The learning rate of $1\times10^{-5}$ achieves relatively balanced performance, with a 
+validation accuracy of \textbf{77.44\%} and test accuracy of \textbf{75.13\%}. However, 
+it does not outperform the lower learning rate of $5\times10^{-6}$. The results 
+reinforce the idea that DenseNet161 benefits from a more controlled learning process, with 
+$5\times10^{-6}$ being the most effective learning rate for RGB inputs.
+
+\subsubsection{Weight Decay Comparisons}
+
+The effect of weight decay on DenseNet161's performance with RGB images is summarized 
+in Table \ref{tab:densenet161_wd_rgb}. Unlike learning rate adjustments, where lower 
+values clearly yielded better results, weight decay presents a worse impact 
+on generalization.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0 & \textbf{80.17} & 0.4245 & 80.56 & 0.4098 & \textbf{78.76} & 0.7485 \\
+        1e-2     & 79.02   & 0.4195 & 79.12 & 0.4436  & 77.20  & 0.7442 \\
+        1e-4   & 77.30     & 0.4685 & 80.27 & 0.4231  & 76.68  & 0.7239 \\
+        1e-6 & 80.17       & 0.4049 & 78.76 & 0.4402  & 75.65  & 0.7403 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Densenet161 with RGB images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:densenet161_wd_rgb}
+\end{table}
+
+Interestingly, training without weight decay ($WD=0$) yields the highest validation 
+accuracy (\textbf{80.17\%}), the highest test accuracy (\textbf{78.76\%}), and 
+a strong F1 score (\textbf{0.7485}). This suggests that for this particular dataset 
+and model configuration, the weight decay regularization may not be the best and could even 
+slightly hinder performance.
+
+A weight decay of $0.01$ produces a slightly lower validation accuracy (\textbf{79.02\%}) 
+and test accuracy (\textbf{77.20\%}), though its F1 score remains competitive at 
+\textbf{0.7442}. This suggests that some more level of regularization can still 
+provide stable performance without drastically reducing accuracy.
+
+However, lower weight decay values, such as $1\times10^{-6}$, do not necessarily 
+lead to better generalization. While it achieves a decent validation accuracy 
+(\textbf{80.17\%}), its test accuracy drops to \textbf{75.65\%}.
+
+
+%                                                                            %
+% ------------------------- DENSENET161 RGB + NDVI ------------------------- %
+%                                                                            %
+
+\subsection{RGB + NDVI Results}
+
+The results for DenseNet161 trained on RGB+NDVI images (Table \ref{tab:densenet161_rgb_ndvi}) 
+show the learning rate impact in the model's performance. The highest 
+validation accuracy (\textbf{80.75\%}) is achieved at a learning rate of $1\times10^{-5}$, 
+but this does not translate into the best test accuracy, which drops to \textbf{74.09\%} 
+with an F1 score of \textbf{0.7195}.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4  & 78.88 & 0.4569 & 82.58 & 0.3855 & 78.24 & 0.7341 \\
+        5e-5  & 79.31 & 0.4607 & 83.19 & 0.3710 & 79.28 & 0.7221 \\
+        1e-5  & 80.75 & 0.4213 & 79.48 & 0.4377 & 74.09 & 0.7195 \\
+        5e-6  & 79.60 & 0.4509 & 80.17 & 0.4166 & 77.72 & 0.7359 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with RGB images + NDVI across different learning rates.}
+    \label{tab:densenet161_rgb_ndvi}
+\end{table}
+
+The highest test accuracy (\textbf{79.28\%}) is achieved at a learning rate of $5\times10^{-5}$, 
+which also yields a competitive validation accuracy of \textbf{79.31\%}. While a higher learning 
+rate appears to improve test performance, the similarity in validation accuracy suggests that this 
+result may be partially influenced by randomness rather than a consistently better generalization.
+
+\subsubsection{Weight Decay Comparisons}
+
+The impact of weight decay on DenseNet161 trained with RGB+NDVI images is summarized 
+in Table \ref{tab:densenet161_wd_rgb_ndvi}.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0     & 79.60  & 0.4509 & 80.17  & 0.4166  & 77.72  & 0.7359 \\
+        1e-2  & 79.02  & 0.4358 & 79.12  & 0.4359  & 72.54  & 0.7006 \\
+        1e-4  & 79.89  & 0.3906 & 80.49  & 0.4158  & 78.76  & 0.7515 \\
+        1e-6  & 80.17  & 0.4287 & 79.91  & 0.4251  & 73.06  & 0.6977 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for Resnet50 with RGB images + NDVI across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:densenet161_wd_rgb_ndvi}
+\end{table}
+
+The results indicate that weight decay 
+does not have a strong or consistent effect on performance, as validation accuracy 
+remains relatively stable across different values. While some variations exist in test 
+accuracy and F1 score, the differences are minor and do not suggest a clear trend. This 
+could indicate that the observed changes are primarily due to randomness rather than a 
+meaningful influence of weight decay on generalization.
+
+\subsection{Gradual Unfreezing Strategy Results}
+
+Given that the results obtained from different learning rates and weight decay settings 
+did not yield consistently strong performance, we experimented with gradual unfreezing strategy,
+mentioned in the models architecture section to explore potential improvements. The goal was 
+to allow the model to retain useful pre-trained features while progressively fine-tuning deeper 
+layers, in order to avoid both underfitting and overfitting. because it was maybe updating
+the weights too much and forgetting the useful features learned in the first layers.
+
+The impact of this approach on DenseNet161 performance is presented in Table \ref{tab:best_runs}.
+Compared to the previous results in Tables \ref{tab:densenet161_irg}, \ref{tab:densenet161_wd_irg}, 
+\ref{tab:densenet161_rgb}, \ref{tab:densenet161_wd_rgb}, \ref{tab:densenet161_rgb_ndvi}
+and \ref{tab:densenet161_wd_rgb_ndvi} unfreezing substantially improves both validation 
+and test performance across all input types.
+
+\begin{table*}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{|c|c|c|cc|cc|cc|}
+        \hline
+        \textbf{IMG} & \textbf{LR} & \textbf{WD} & \multicolumn{2}{c|}{\textbf{Validation}} & \multicolumn{2}{c|}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        &  &  & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        & 1e-4 & 1e-2 & 79.60 & 0.450 & 78.69 & 0.450 & 78.76 & 0.7485 \\
+        RGB & 1e-4 & 1e-4 & \textbf{83.05} & 0.386 & 78.40 & 0.478 & \textbf{84.46} & 0.8148 \\
+        & 1e-5 & 1e-2 & 77.87 & 0.450 & 78.98 & 0.456 & 77.20 & 0.7349 \\
+        & 1e-5 & 1e-4 & 79.60 & 0.438 & 81.57 & 0.411 & 76.68 & 0.7368 \\
+        \hline
+        & 1e-4 & 1e-2 & 78.74 & 0.431 & 78.62 & 0.454 & 80.31 & 0.7683 \\
+        IRG & 1e-4 & 1e-4 & \textbf{80.46} & 0.426 & 82.65 & 0.396 & \textbf{82.90} & 0.7692 \\
+        & 1e-5 & 1e-2 & 77.87 & 0.446 & 79.41 & 0.426 & 81.35 & 0.7778 \\
+        & 1e-5 & 1e-4 & 76.72 & 0.498 & 78.76 & 0.450 & 75.65 & 0.7283 \\
+        \hline
+        & 1e-4 & 1e-2 & 81.90 & 0.387 & 79.27 & 0.438 & 77.20 & 0.7143 \\
+        RGB+NDVI & 1e-4 & 1e-4 & \textbf{85.06} & 0.384 & 82.07 & 0.381 & \textbf{82.38} & 0.8000 \\ 
+        & 1e-5 & 1e-2 & 82.76 & 0.405 & 79.70 & 0.435 & 77.72 & 0.7114 \\
+        & 1e-5 & 1e-4 & 81.61 & 0.418 & 81.21 & 0.412 & 73.06 & 0.7079 \\
+        \hline
+    \end{tabular}
+    \caption{Results for each learning rate (LR) and weight decay (WD) combination with gradual unfreezing strategy for DenseNet161.}
+    \label{tab:best_runs}
+\end{table*}
+
+
+
+Starting with the RGB setting, we notice the biggest improvement among them all, where test 
+accuracy rises to \textbf{84.46\%} from the best previously achieved \textbf{78.76\%} 
+(Table \ref{tab:densenet161_rgb}), an increase of over 5.7 percentage points. 
+Similarly, the F1 score jumps from \textbf{0.7485} to \textbf{0.8148}, indicating 
+not only better classification accuracy but also more balanced predictions.
+
+For the IRG images, it shows a stable generalization improvement. Test accuracy 
+reaches \textbf{82.90\%}, compared to a previous best of \textbf{78.76\%}
+(Table \ref{tab:densenet161_irg}). The associated F1-score is \textbf{0.7692}. 
+Interestingly, another run achieved a slightly better F1-score of \textbf{0.7778} but at 
+a lower test accuracy of \textbf{81.35\%}, indicating a trade-off between overall 
+accuracy and class balance.
+
+A similar trend is seen with RGB+NDVI images. The highest validation accuracy 
+of \textbf{85.06\%} is now achieved, a notable increase from \textbf{80.75\%} in 
+Table \ref{tab:densenet161_rgb_ndvi}. The test accuracy also improves
+reaching \textbf{82.38\%}, which is much better than its best test 
+accuracy before the unfreezing strategy (\textbf{79.28\%}).
+
+Overall, these results demonstrate that gradually unfreezing is a highly effective 
+strategy for DenseNet161, when applied to all types of imagery, it leads to 
+significant performance gains in both validation and test accuracy.
+
+\section{EfficientNet-B5 Results}
+
+
+Figure \ref{fig:eb5_results} presents the training and validation performance for 
+IRG images, showing trends in both loss and accuracy. Since the results for RGB and RGB+NDVI 
+images were similar, only the IRG graphs are displayed for clarity.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../Figures/efficientnet_b5_averages.png}
+    \caption{Average training and validation performance of EfficientNetB5 across different learning rates.}
+    \label{fig:eb5_results}
+\end{figure}
+
+The training loss curves indicate that models 
+with higher learning rates ($LR=1\times10^{-4}$, $LR=5\times10^{-5}$) converge 
+faster, whereas lower learning rates exhibit slower but steady progress. However, 
+the validation loss plot shows that higher learning rates result in more volatility, 
+suggesting that while they accelerate training, they may lead to instability in 
+generalization, similarly to Resnet50.
+
+%                                                                         %
+% ------------------------- EFFICIENTNET_B5 IRG ------------------------- %
+%                                                                         %
+\subsection{IRG Results}
+
+Table \ref{tab:efficientnet_b5_irg} presents results across different learning rates. 
+While the highest validation accuracy (\textbf{79.74\%}) and test accuracy (\textbf{77.72\%}) were 
+obtained with the largest learning rate ($LR=1\times10^{-4}$), the differences across learning 
+rates remain relatively small. The best-performing configuration also achieved the highest training 
+accuracy (\textbf{84.41\%}), suggesting strong learning on the training data. However, the 
+validation loss (0.4542) and test F1-score (0.7584) indicate that generalization is still a concern.
+
+Given the close performance across learning rates, these results suggest that EfficientNet-B5 
+may still require additional regularization to further stabilize validation and test performance. 
+The minor variations in accuracy and F1-score highlight the potential influence of randomness, and 
+tuning other hyperparameters, such as weight decay, may offer better control over generalization.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4  & 79.74  & 0.4542 & 84.41 & 0.3510 & 77.72 & 0.7584 \\
+        5e-5  & 74.71  & 0.5184 & 77.50 & 0.4573 & 76.43 & 0.7425 \\
+        1e-5  & 79.02  & 0.4590 & 78.47 & 0.4591 & 75.64 & 0.7054 \\
+        5e-6  & 78.74  & 0.4473 & 79.01 & 0.4277 & 77.72 & 0.7415 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for EfficientNetB5 with IRG images across different learning rates.}
+    \label{tab:efficientnet_b5_irg}
+\end{table}
+
+Since learning rate adjustments alone did not yield significant improvements, 
+we next tested the effect of weight decay on model performance. 
+
+Table \ref{tab:efficientnetb5_wd_irg} presents results across different weight decay values
+for the IRG images. The strongest test accuracy (\textbf{83.42\%}) and highest F1-score 
+(\textbf{0.8182}) were obtained with $WD=1\times10^{-2}$, demonstrating that stronger 
+regularization can help improve generalization.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0    & 78.74    & 0.4473 & 79.01 & 0.4277 & 77.72 & 0.7415 \\
+        1e-2 & 79.31    & 0.4374 & 80.42  & 0.4190  & \textbf{83.42}  & \textbf{0.8182} \\
+        1e-4 & 77.59    & 0.4906 & 83.15  & 0.3831  & 80.83  & 0.7550 \\
+        1e-6 & 79.60    & 0.4297 & 80.78  & 0.4086  & 80.31  & 0.7889 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for EfficientNetB5 with IRG images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:efficientnetb5_wd_irg}
+\end{table}
+
+Other weight decay values exhibit varying degrees of effectiveness. A smaller weight decay 
+($WD=1\times10^{-4}$) led to high training accuracy of \textbf{83.15\%} but a comparatively lower 
+test accuracy \textbf{80.83\%}. Meanwhile, an extremely small weight decay ($WD=1\times10^{-6}$) 
+still achieved strong generalization with a test accuracy of \textbf{80.31\%} and an F1-score of 0.7889.
+
+Overall, these results demonstrate that for EfficientNet-B5 with IRG images, 
+regularization plays a crucial role in improving test accuracy and generalization. 
+While learning rate adjustments alone had limited impact, a combination of a learning 
+rate of $5\times10^{-6}$ and a weight decay of $1\times10^{-2}$ produced very good 
+results. This suggests that while fine-tuning is necessary, applying proper regularization 
+techniques is equally important for optimizing this architecture.
+
+
+%                                                                         %
+% ------------------------- EFFICIENTNET_B5 RGB ------------------------- %
+%                                                                         %
+
+\subsection{RGB Results}
+
+The different learning rate results for EfficientNet-B5 trained on RGB images are 
+presented in Table \ref{tab:efficientnetb5_lr_rgb}. The best validation accuracy is 
+achieved with $LR=1\times10^{-5}$ at 78.45\%, while the highest test accuracy is 
+obtained with the lowest learning rate ($LR=5\times10^{-6}$), reaching 78.76\%. The best 
+F1-score is found at $LR=1\times10^{-4}$ with a value of 0.7616.
+
+However, similar to the results obtained for IRG images (Table \ref{tab:efficientnet_b5_irg}),
+there is no significant improvement across learning rates, and overall test performance 
+remains suboptimal. The results suggest that while lower learning rates may provide slight 
+improvements in generalization, the model still struggles to achieve strong validation and 
+test performance.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4   & 76.29  & 0.4923 & 79.05 & 0.4659 & 78.24 & 0.7616 \\
+        5e-5   & 78.16  & 0.4519 & 77.14 & 0.4834 & 77.72 & 0.7387 \\
+        1e-5   & 78.45  & 0.4797 & 79.19 & 0.4467 & 74.10 & 0.7367 \\
+        5e-6   & 75.86  & 0.4725 & 77.29 & 0.4635 & 78.76 & 0.7360 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for EfficientNetB5 with IRG images across different learning rates.}
+    \label{tab:efficientnetb5_lr_rgb}
+\end{table}
+
+Given these observations, we next explore the impact of weight decay on EfficientNet-B5's 
+performance. Since learning rate adjustments alone did not lead to consistent improvements, 
+applying different weight decay values may help introduce better regularization and stability to the model
+the same way it did for IRG images.
+
+The Table \ref{tab:efficientnetb5_wd_rgb} presents the results for different 
+weight decay values. The highest validation accuracy is observed at 
+$WD=1\times10^{-4}$ with \textbf{81.90\%}. However, the best test accuracy is 
+achieved at $WD=1\times10^{-2}$, reaching \textbf{81.87\%}. The highest F1-score 
+is also obtained at $WD=1\times10^{-2}$ with 0.7619. These results indicate 
+that stronger weight decay improves test performance, even if it does not 
+always yield the highest validation accuracy.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0     & 75.86           & 0.4725 & 77.29  & 0.4635 & 78.76 & 0.7360 \\
+        1e-2  & 81.63           & 0.4344 & 78.47  & 0.4420  & \textbf{81.87}  & 0.7619 \\
+        1e-4  & \textbf{81.90}  & 0.4064 & 79.27  & 0.4505  & 80.83 & 0.7413 \\
+        1e-6  & 78.16           & 0.4763 & 76.39  & 0.4937  & 81.35  & 0.7534 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for EfficientNetB5 with RGB images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:efficientnetb5_wd_rgb}
+\end{table}
+
+
+%                                                                                %
+% ------------------------- EFFICIENTNET_B5 RGB + NDVI ------------------------- %
+%                                                                                %
+
+\subsection{RGB + NDVI Results}
+
+Table \ref{tab:efficientnetb5_lr_rgb_ndvi} presents the results for EfficientNet-B5 trained on 
+RGB images + NDVI with different learning rates. The highest validation accuracy (81.47\%) is 
+achieved at $LR=5\times10^{-5}$, but this configuration also results in the lowest test 
+accuracy (70.73\%). In contrast, the best test accuracy (79.83\%) and highest F1-score 
+(0.7886) are obtained with the lowest learning rate, $LR=5\times10^{-6}$.
+
+However, similar to the previous results for RGB and IRG images, the overall performance 
+remains inconsistent across different learning rates, with no clear pattern indicating 
+an optimal setting. The variability in validation and test accuracy suggests that 
+regularization techniques, such as weight decay, may be necessary to stabilize generalization.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{LR} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        1e-4   & 78.02 &  0.4699 & 80.13 & 0.4456 & 75.39 & 0.7400 \\
+        5e-5   & 81.47 &  0.4405 & 80.99 & 0.4185 & 70.73 & 0.7064 \\
+        1e-5   & 77.87 &  0.4623 & 80.92 & 0.4181 & 73.05 & 0.7475 \\
+        5e-6   & 75.29 &  0.4815 & 80.42 & 0.4354 & 79.83 & 0.7886 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for EfficientNet-B5 with RGB+NDVI images across different learning rates.}
+    \label{tab:efficientnetb5_lr_rgb_ndvi}
+\end{table}
+
+To address the instability observed with different learning rates, we next evaluate the impact 
+of weight decay. Table \ref{tab:efficientnetb5_wd_rgb_ndvi} presents the results across different 
+weight decay values for a fixed learning rate of $5\times10^{-6}$. The highest validation 
+accuracy (80.17\%) and test accuracy (81.35\%) are obtained with $WD=1\times10^{-4}$, which also 
+achieves the highest F1-score (0.7955). This suggests that moderate weight decay helps improve 
+generalization and stability.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|cccccc|}
+        \hline
+        & \multicolumn{2}{c}{\textbf{Validation}} & \multicolumn{2}{c}{\textbf{Train}} & \multicolumn{2}{c|}{\textbf{Test}} \\
+        \textbf{WD} & Accuracy & Loss & Accuracy & Loss & Accuracy & F1 Score \\
+        \hline
+        0     & 75.29 & 0.4815 & 80.42 & 0.4354 & 79.83 & 0.7886 \\
+        1e-2  & 76.72  & 0.4617  & 77.90  & 0.4819  & 74.09  & 0.6154 \\
+        1e-4  & \textbf{80.17}  & 0.4309   & 80.42  & 0.4221  & \textbf{81.35}  & \textbf{0.7955} \\
+        1e-6  & 75.57  & 0.4838  & 78.76  & 0.4466  & 79.79  & 0.7845 \\
+        \hline
+    \end{tabular}
+    \caption{Average results for EfficientNet-B5 with RGB+NDVI images across different weight decay values for a learning rate of 5e-6.}
+    \label{tab:efficientnetb5_wd_rgb_ndvi}
+\end{table}
+
+While $WD=1\times10^{-4}$ performs best overall, other values also show competitive results. Notably, 
+$WD=0$ still achieves a strong test accuracy of 79.83\%, reinforcing the idea that while weight 
+decay helps, the model already exhibits some degree of generalization. On the other hand, a very 
+high weight decay ($WD=1\times10^{-2}$) leads to a significant drop in test accuracy (74.09\%) and 
+F1-score (0.6154), likely due to excessive regularization.
+
+
+\section{Summary of Best Results for Each Architecture}
+
+The performance of different architectures (ResNet50, DenseNet161, and EfficientNet-B5) 
+across three input configurations (RGB, IRG, and RGB+NDVI) exhibits notable variations 
+in accuracy and generalization capabilities. Table \ref{tab:model_comparison} summarizes the best 
+results for each architecture.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \textbf{Model} & \textbf{Image Type} & \textbf{Val Acc (\%)} & \textbf{Test Acc (\%)} & \textbf{Test F1} \\
+        \hline
+                 & IRG        & \textbf{81.32}  & \textbf{82.90}  & \textbf{0.8024} \\
+        ResNet50 & RGB        & 82.18  & 80.83  & 0.7730 \\
+                 & RGB+NDVI   & 78.59  & 77.72  & 0.6958 \\
+        \hline
+                    & IRG        & 80.46  & 82.90  & 0.7692 \\
+        DenseNet161 & RGB        & \textbf{83.05}  & \textbf{84.46}  & \textbf{0.8148} \\
+                    & RGB+NDVI   & 85.06  & 82.38  & 0.8000 \\
+        \hline
+                        & RGB        & 79.31  & \textbf{83.42}  & \textbf{0.8182} \\
+        EfficientNet-B5 & IRG        & 81.63  & 81.87  & 0.7619 \\
+                        & RGB+NDVI   & 80.17  & 81.35  & 0.7955 \\
+        \hline
+    \end{tabular}
+    \caption{Comparison of the best-performing configurations for ResNet50, DenseNet161, and EfficientNet-B5 across different image types.}
+    \label{tab:model_comparison}
+\end{table}
+
+
+\subsection{ResNet50 Performance}
+For ResNet50, the IRG configuration yielded the best overall performance, with the highest 
+test accuracy (\textbf{82.90\%}) and F1 score (\textbf{0.8024}). The RGB configuration performed 
+slightly worse, achieving a validation accuracy of \textbf{82.18\%}, but a lower test accuracy 
+(\textbf{80.83\%}) and F1 score (\textbf{0.7730}). RGB+NDVI produced the weakest results across all 
+metrics, suggesting that adding NDVI does not enhance ResNet50's ability to generalize.
+
+The poor performance of the RGB+NDVI configuration may be attributed 
+to the architectural design of ResNet50. Originally designed for three-channel 
+RGB images, the model was adapted for four-channel input, but this adaptation 
+may not have been sufficient for effectively leveraging the NDVI information. 
+
+One possible reason for this lower performance is inefficient channel utilization, 
+as the ResNet50 architecture is primarily designed for three-channel inputs. The addition 
+of a fourth channel may not be fully leveraged by the initial convolutional layers.
+
+\subsection{DenseNet161 Performance}
+DenseNet161 showed strong generalization, with RGB achieving the highest test accuracy (\textbf{84.46\%}) of all results
+and RGB+NDVI attaining the best validation accuracy (\textbf{85.06\%}). However, despite excelling in validation, 
+RGB+NDVI underperformed in test accuracy (\textbf{82.38\%}). The IRG configuration also remained competitive, 
+reaching a test accuracy of \textbf{82.90\%}.
+
+\subsection{EfficientNet-B5 Performance}
+EfficientNet-B5 exhibited its strongest performance with IRG, achieving the highest test accuracy (\textbf{83.42\%}) 
+and F1 score (\textbf{0.8182}), indicating its effectiveness in capturing spectral features. While RGB and RGB+NDVI 
+configurations performed slightly worse (\textbf{81.87\%} and \textbf{81.35\%} test accuracy, respectively), 
+their close results suggest EfficientNet-B5 maintains relatively stable performance across different input configurations.
+
+\section{Ensemble Model Results}
+
+In this section, we present the results of the ensemble models, which combine the predictions of
+the best-performing models for each architecture and input type. Firstly we present the results of the
+RGB-Only Ensemble, which combines the best-performing models trained on RGB images for each architecture.
+Next, we present the results of the Ensemble that combines the best models for different input
+types (RGB, IRG, and RGB+NDVI).
+
+\subsection{RGB Only Ensemble}
+
+The RGB-Only Ensemble was evaluated based on accuracy and F1-score, achieving the following results:
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Metric} & \textbf{Ensemble Score} \\
+        \hline
+        Accuracy & 84.97\% \\
+        F1-Score & 84.99\% \\
+        \hline
+    \end{tabular}
+    \caption{Performance metrics of the RGB-Only Ensemble.}
+    \label{tab:rgb_ensemble_results}
+\end{table}
+
+To further evaluate the ensemble's classification performance, Figure \ref{fig:rgb_confusion} presents 
+the confusion matrix. The normalized confusion matrix provides insight into the model's ability to 
+correctly classify each class.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{confusion_matrix_rgb_ensemble.png}
+    \caption{Normalized Confusion Matrix for the RGB-Only Ensemble.}
+    \label{fig:rgb_confusion}
+\end{figure}
+
+The confusion matrix indicates that the ensemble correctly classified \textbf{86\% of Average Risk} cases 
+and \textbf{83\% of Very High Risk} cases. The misclassification rates of 14\% and 17\%, respectively, 
+suggest that while the ensemble achieves strong performance, improvements could be explored through 
+alternative ensembling techniques or adjustments in decision thresholds.
+
+\subsection{Multi-Input Ensemble}
+
+The Multi-Input Ensemble combines models trained with different input configurations (RGB, IRG, and RGB+NDVI) 
+across DenseNet161 and EfficientNet-B5. This approach aims to leverage complementary spectral information to 
+improve classification performance. 
+
+ResNet50 with RGB+NDVI was excluded from this ensemble due to its lower test accuracy and F1-score compared 
+to other models (Table \ref{tab:model_comparison}), ensuring that only the most effective configurations 
+contributed to the final predictions.
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Metric} & \textbf{Ensemble Score} \\
+        \hline
+        Accuracy & 86.53\% \\
+        F1-Score & 86.53\% \\
+        \hline
+    \end{tabular}
+    \caption{Performance metrics of the Multi-Input Ensemble.}
+    \label{tab:multi_input_ensemble_results}
+\end{table}
+
+The Multi-Input Ensemble achieved a very strong F1-score of \textbf{86.53\%}, indicating a well-balanced trade-off between 
+precision and recall. This result suggests that the ensemble is not only making accurate predictions but is also 
+maintaining a consistent ability to correctly classify both risk categories. 
+
+The high F1-score is particularly important in this context, as it reflects the model's ability to minimize both 
+false positives (misclassifying Average Risk as Very High Risk) and false negatives (failing to identify Very High 
+Risk cases).
+
+Figure \ref{fig:multi_input_confusion} presents the normalized confusion matrix for the Multi-Input 
+Ensemble. This matrix provides insight into classification performance across the two risk categories.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{confusion_matrix_ensemble.png}
+    \caption{Normalized Confusion Matrix for the Multi-Input Ensemble.}
+    \label{fig:multi_input_confusion}
+\end{figure}
+
+The confusion matrix indicates that the ensemble correctly classified \textbf{88\% of Average Risk} cases 
+and \textbf{84\% of Very High Risk} cases. The misclassification rates of 12\% and 16\%, respectively, 
+affirm that this approach slightly outperforms the RGB-Only Ensemble in distinguishing samples. 
+This improvement demonstrates the benefit of integrating multiple input types, 
+as different spectral channels likely contributed to better feature extraction and classification.
+
+\subsection{Analysis of High-Confidence Misclassifications}
+
+One critical area of analysis is the set of misclassified samples where the ensemble model predicted 
+with \textbf{100\% confidence} but failed to match the ground truth. These cases are particularly concerning 
+because they indicate that the model was highly certain about an incorrect prediction, suggesting potential 
+weaknesses in the learned feature representations or decision process.
+
+For each of these misclassified cases, we present both the RGB and IRG representations of the 
+affected locations to explore possible reasons for the misclassification.
+
+Firstly, the cases that the ensemble failed to detect high-risk with 100\% of confidence, which 
+could be particularly dangerous in real-world applications. The images below show two houses that were classified 
+as \textbf{Average Risk} but were actually labeled as \textbf{Very High Risk}.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/BE47.png}
+        \caption{False Negative Example 1 - RGB}
+        \label{fig:fn1_rgb}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/BE47_IRG.png}
+        \caption{False Negative Example 1 - IRG}
+        \label{fig:fn1_irg}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/V29.png}
+        \caption{False Negative Example 2 - RGB}
+        \label{fig:fn2_rgb}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/V29_IRG.png}
+        \caption{False Negative Example 2 - IRG}
+        \label{fig:fn2_irg}
+    \end{minipage}
+    \caption{False Negative Cases: Houses classified as \textit{Average Risk} but labeled as \textit{Very High Risk}.}
+    \label{fig:false_negatives}
+\end{figure}
+
+After closely reviewing these two samples, they show visual characteristics typically associated with 
+lower-risk properties (Figure \ref{fig:false_negatives}).
+
+The first example is a well-maintained house with minimal vegetation in its immediate 
+surroundings. The area appears to be clean and managed, with little to no overgrown vegetation. 
+However, the labeling may have been particularly strict in this case, as there is a tree and 
+some vegetation close to the structure, which might have contributed to its classification as 
+\textbf{Very High Risk}.
+
+In the second example, while vegetation density is slightly higher, the house itself remains 
+well-kept, and the surrounding vegetation appears to be managed rather than overgrown. Similar 
+to the first case, the proximity of vegetation to the house may have influenced the labeling decision, 
+leading to its classification as \textbf{Very High Risk}.
+
+
+The following cases illustrate instances where the ensemble overestimated risk compared to the provided labels, 
+potentially leading to unnecessary interventions. Below, we present two examples where houses were labeled as 
+\textbf{Average Risk} but were predicted as \textbf{Very High Risk} by the model.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/V6.png}
+        \caption{False Positive Example 1 - RGB}
+        \label{fig:fp1_rgb}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/V6_IRG.png}
+        \caption{False Positive Example 1 - IRG}
+        \label{fig:fp1_irg}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/VC135.png}
+        \caption{False Positive Example 2 - RGB}
+        \label{fig:fp2_rgb}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/VC135_IRG.png}
+        \caption{False Positive Example 2 - IRG}
+        \label{fig:fp2_irg}
+    \end{minipage}
+    \caption{False Positive Cases: Houses classified as \textit{Very High Risk} but labeled as \textit{Average Risk}.}
+    \label{fig:false_positives}
+\end{figure}
+
+After reviewing these two cases (Figure \ref{fig:false_positives}), both exhibit visual characteristics 
+strongly associated with high fire risk, despite being labeled as \textbf{Average Risk} in the dataset.
+
+In the first example, the property is closely surrounded by dense vegetation, including trees and 
+shrubs, which are key indicators of elevated fire risk. 
+
+In the second example, unlike the first case where vegetation proximity is the primary concern, 
+this location features widespread, uninterrupted vegetation cover. According to Table \ref{fig:fire-risk-table}, 
+extensive vegetation continuity is a critical parameter for extreme fire risk, which likely contributed 
+to the ensemble model's classification of Very High Risk.
+
+Another observations is that shadows present in the imagery may have influenced the model's perception of 
+vegetation density, potentially leading to an overestimation of fire risk. In areas where dense tree 
+canopies cast dark shadows, the model might interpret these regions as continuous vegetation cover rather 
+than open or managed spaces. This effect could have contributed to the ensemble's misclassification of certain 
+as Very High Risk despite their actual fire exposure conditions.
