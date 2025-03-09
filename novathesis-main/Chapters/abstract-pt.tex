@@ -7,33 +7,31 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \typeout{NT FILE abstrac-pt.tex}%
-Nos últimos anos, o impacto das mudanças climáticas tem se manifestado em incêndios
-florestais mais frequentes e severos, representando ameaças significativas para ecossistemas,
-propriedades e vidas humanas. A gestão eficaz da vegetação em torno dessas áreas é crucial
-para a redução do risco de incêndios florestais. Reconhecer o risco de incêndio associado
-a diferentes tipos de vegetação é essencial para planear medidas preventivas que protejam as
-residências dos impactos devastadores dos incêndios.
+O aumento da frequência dos incêndios florestais, representam uma ameaça crescente 
+para áreas residenciais, 
+especialmente aquelas rodeadas por vegetação densa. A avaliação do 
+risco de incêndio e a implementação de estratégias de mitigação são essenciais 
+para a proteção de casas e comunidades. Este estudo explora o uso de técnicas de 
+aprendizagem profunda para automatizar a classificação do risco de incêndio em 
+habitações com base na vegetação envolvente.
 
-Este plano de dissertação visa procura uma forma de automatizar a avaliação dos riscos de incêndio usando técnicas de
-aprendizagem automática e profunda, focando na vegetação ao redor das áreas residenciais.
-As classificações fornecidas pela \gls{adai},
-abrangem mais de 2.000 locais de casas isoladas em Portugal Continental, serão utilizadas como
-verdade de terreno para o nosso estudo. As imagens aéreas das casas e da vegetação circundante
-são obtidas através da API de dados abertos da \gls{dgt}.
+Com base num conjunto de dados de mais de 2.000 casas isoladas em Portugal Continental, 
+fornecido pela Associação para o Desenvolvimento da Aerodinâmica Industrial (ADAI), 
+este trabalho utiliza imagens aéreas obtidas através da API de dados abertos da 
+Direção-Geral do Território (DGT). Redes Neuronais Convolucionais (CNNs) foram 
+usadas para desenvolver o modelo de classificação, avaliando arquiteturas 
+como ResNet-50, DenseNet-161 e EfficientNet-B5. A análise compara modelos 
+treinados com imagens RGB e aqueles que integram dados espectrais adicionais, 
+como Infrared-Green-Red (IRG) e o Índice de Vegetação de Diferença Normalizada 
+(NDVI), para avaliar o impacto na precisão da classificação.
 
-Trabalhos relacionados como o Hydra e a Rede Neural Convolucional de
-Agregação de Características (FACNN), apresentam arquiteturas de modelos altamente eficazes na
-classificação de imagens de origem aérea e de satélite. Estes modelos são baseados em redes neurais
-convolucionais (CNNs) e utilização de transferência de aprendizagem, proporcionando uma base sólida para
-o nosso problema.
-
-Além disso, delineamos um plano de trabalho estruturado, envolvendo a obtenção de dados,
-pré-processamento, implementação de modelos, treino e avaliação. Esta abordagem visa garantir o
-desenvolvimento de uma solução escalável e eficiente para a avaliação do risco de incêndio.
-
-Ao automatizar a identificação das classes de risco de vegetação, esta pesquisa busca reduzir o
-esforço necessário para a avaliação de riscos, permitindo estratégias de mitigação mais eficazes. Por último, este estudo contribui para o objetivo mais amplo de promover
-o combate à crescente ameaça dos incêndios florestais derivados das mudanças climáticas.
+Para melhorar o desempenho do modelo, aplicaram-se técnicas de augmentação 
+e uma abordagem de aprendizagem em conjunto (ensemble learning), garantindo maior 
+robustez na classificação de diferentes tipos de vegetação. A metodologia proposta 
+visa tornar a avaliação de risco mais eficiente, reduzindo a necessidade de 
+trabalho manual e permitindo uma identificação mais rápida de áreas vulneráveis. 
+Este estudo contribui para o avanço da análise automatizada do risco de incêndios, 
+apoiando estratégias preventivas e reforçando a resiliência das comunidades em zonas de risco.
 
 % Palavras-chave do resumo em Português
 % \begin{keywords}

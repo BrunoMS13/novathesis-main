@@ -3,4 +3,47 @@
 \chapter{Conclusions}
 \label{cha:conclusions}
 
-Conclusions\dots
+This study has demonstrated the potential of deep learning techniques for automating 
+fire risk classification using aerial imagery. By leveraging convolutional neural 
+networks (CNNs) such as ResNet-50, DenseNet-161, and EfficientNet-B5, we have shown 
+that deep learning models can effectively classify vegetation-related fire risks with 
+high accuracy.
+
+The results indicate that ensemble models, particularly those incorporating multiple 
+spectral inputs (RGB, IRG, and NDVI), provide improved generalization and classification 
+robustness compared to individual architectures. The Multi-Input Ensemble achieved the 
+highest performance, with an accuracy of \textbf{86.53\%} and an F1-score of \textbf{86.53\%}, 
+demonstrating the effectiveness of combining diverse input sources and model architectures. 
+Additionally, the RGB-Only Ensemble also delivered strong results, achieving an accuracy of \textbf{84.97\%}
+and an F1-score of \textbf{84.99\%}, showing that even without additional spectral data, 
+a well-optimized CNN model can achieve high classification performance.
+
+Despite these advancements, some limitations remain. Some misclassification cases between
+categories, suggest that further refinement in labeled data could be necessary.
+
+For future work, several avenues can be explored. Enhancing data augmentation techniques 
+could improve model generalization, particularly if a more granular multi-class classification 
+approach is adopted or if a larger, more balanced dataset becomes available. This would help 
+mitigate biases and improve the model's ability to distinguish between subtle variations in 
+fire risk levels.
+
+Developing semi-supervised or self-supervised learning approaches could reduce reliance on 
+extensive labeled datasets, allowing the model to adapt to different geographical regions 
+with minimal manual intervention. This would be especially beneficial in expanding the 
+system's applicability beyond the dataset used in this study.
+
+Additionally, integrating temporal satellite imagery could enable dynamic risk assessments 
+by accounting for seasonal changes in vegetation density and evolving fire hazards. This 
+would allow for a more proactive approach to fire prevention by continuously monitoring 
+landscape changes that affect fire susceptibility.
+
+Lastly, optimizing model efficiency for real-time inference is crucial for practical 
+deployment, particularly in emergency response scenarios. Reducing computational overhead 
+while maintaining high accuracy would make the system more accessible for integration into 
+early warning systems and real-time decision-making tools used by authorities and first 
+responders.
+
+In conclusion, this research contributes to the growing field of AI-driven environmental 
+monitoring by providing a scalable and efficient method for fire risk classification. 
+Automating risk assessment enables faster and more accurate wildfire prevention strategies, 
+improving response times and reducing the impact of climate change-induced disasters.

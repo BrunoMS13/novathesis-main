@@ -1,0 +1,133 @@
+\chapter{Related Work}
+\label{cha:related-work}
+
+\section{Remote Sensing Image Classification}
+
+Deep learning has become the dominant approach for remote sensing image classification, 
+leveraging convolutional neural networks (\gls{cnn}) to extract spatial and spectral features 
+from aerial and satellite imagery. While significant progress has been made in classifying 
+land-use and scene categories, fire risk classification remains a challenging task due 
+to its dependence on vegetation conditions, environmental variations, and fine-grained 
+differences between risk levels.
+
+
+\section{CNN-Based Methods for Remote Sensing Classification}
+
+The article \textit{Remote Sensing Image Scene Classification Meets Deep Learning} 
+\cite{cheng2020remote} provides a systematic review of deep learning methods for remote 
+sensing image classification, covering more than 160 papers. It compares the accuracies 
+of several models using benchmark datasets, including UC-MERCED \cite{yang2010bag}, AID 
+\cite{xia2017aid}, and NWPU-RESISC45 \cite{cheng2017remote}.
+
+The UC-Merced dataset contains 2100 images across 21 land-use classes, with a resolution of 
+256x256 pixels at 0.3 m spatial resolution. The AID dataset expands on this, featuring 10,000 
+images from 30 scene classes, varying in resolution from 8 m to 0.5 m per pixel. NWPU-RESISC45 
+is the largest, with 31,500 images spanning 45 categories, covering over 100 countries, with
+pixel resolutions ranging from 30 m to 0.2 m.
+
+Although these datasets focus on general land-use and scene classification, they share similarities 
+with fire risk classification, particularly in dealing with heterogeneous environments and high 
+interclass similarity. In both cases, distinguishing between classes can be challenging due to 
+factors such as subtle differences in vegetation density, variations in terrain, and seasonal 
+changes affecting the imagery.
+
+\subsection{Deep Learning-Based Scene Classification Algorithms}
+
+Scene classification using deep learning has gained significant attention in remote sensing research. 
+The paper \cite{cheng2020remote} categorizes deep learning approaches into three main types: autoencoder-based methods, 
+CNN-based methods, and GAN-based methods. While all three have been explored for remote sensing applications, 
+CNN-based approaches have demonstrated the highest performance and practical applicability.
+
+\subsubsection{Autoencoder-Based Methods}
+Autoencoders have been widely used in earlier years for remote sensing classification due to their ability 
+to automatically learn mid-level feature representations from unlabeled data. However, their performance 
+is generally inferior to CNN-based approaches, as they do not fully leverage scene class information 
+for optimal feature discrimination. Given these limitations, autoencoder-based methods 
+are not considered in this study.
+
+\subsubsection{CNN-Based Methods}
+CNN-based approaches have become the dominant technique for remote sensing image classification, offering 
+state-of-the-art accuracy across various datasets. These methods can be divided into three categories:
+
+\begin{itemize}
+    \item \textbf{Pretrained \gls{cnn} as Feature Extractors:} \gls{cnn} pretrained on large datasets such as ImageNet are used to extract 
+    deep features from remote sensing images, which are then fed into a separate classifier (e.g., SVM).
+    \item \textbf{Fine-Tuning Pretrained \gls{cnn}:} A CNN pretrained on ImageNet is fine-tuned on the target dataset, adjusting its 
+    learned features for improved performance.
+    \item \textbf{Training \gls{cnn} from Scratch:} A CNN is trained from the ground up using a custom dataset, requiring 
+    significantly more labeled samples and computational resources.
+\end{itemize}
+
+Among these, fine-tuning pretrained \gls{cnn} has shown the best trade-off between accuracy and computational efficiency, 
+particularly for remote sensing applications with limited labeled data. Fine-tuning approaches such as SF-CNN 
+(Scale-Free CNN) \cite{SF-CNN} and GBN (Gated Bidirectional Network) \cite{GBN} have achieved accuracies above 98\% 
+on benchmark datasets.
+
+For larger-scale and more complex classification tasks, ensemble models like Hydra \cite{hydra} have been
+shown to outperform single \gls{cnn}. Hydra employs an ensemble of ResNet and DenseNet architectures,
+fine-tuning multiple \gls{cnn} separately and combining their outputs through a majority voting strategy.
+An image is classified into the majority class if at least half of the models agree; otherwise, it is labeled as unknown.
+This approach allows for improved 
+generalization and robustness, particularly in datasets with high interclass similarity.
+
+\paragraph{Hydra Framework}
+This framework follows an ensemble-based approach designed to improve classification accuracy while reducing training time. 
+The process consists of two main stages:
+\begin{enumerate}
+    \item An initial CNN is trained and coarsely optimized, forming the "Hydra's body."
+    \item The obtained weights are then fine-tuned multiple times using different augmentation techniques, region crop styles, 
+    and class weighting strategies to create the ensemble’s individual models, referred to as the "Hydra's heads."
+\end{enumerate}
+
+By leveraging this strategy, the ensemble encourages diversity among the individual models, which improves the robustness of predictions. 
+A visualization of the Hydra framework is presented in Figure \ref{fig:hydra-testing}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/hydra-testing.png}
+    \caption{Hydra framework testing flowchart from \cite{hydra}.}
+    \label{fig:hydra-testing}
+\end{figure}
+
+The training procedure ensures that each head of the Hydra converges to a different local optimum by employing various 
+augmentation techniques such as online data augmentation, different crop strategies, and metadata inclusion. This ensemble 
+approach mitigates the limitations of using a single CNN and has demonstrated superior classification performance in remote sensing applications.
+
+At inference time, an input image is passed through all heads of the Hydra, and each head provides a classification score. 
+The final prediction is determined through majority voting, which enhances the ensemble’s robustness against individual model biases.
+
+\paragraph{Limitations of Fine-Tuning Pretrained \gls{cnn}}
+Despite their effectiveness, fine-tuning pretrained \gls{cnn} introduces certain challenges. Pretrained models are typically optimized for generic 
+image classification tasks (e.g., natural images from ImageNet), which may not fully align with the spectral and spatial characteristics of 
+remote sensing images. Furthermore, pretrained models may introduce biases based on the original training data, necessitating careful 
+selection of hyperparameters and augmentation techniques.
+
+\subsubsection{GAN-Based Methods}
+Generative Adversarial Networks (GANs) have also been explored as an alternative approach to remote sensing classification, 
+offering the ability to generate synthetic samples for training deep learning models \cite{attgan, martagan}.  
+While GAN-based techniques can help mitigate data scarcity, their application in scene classification remains limited.
+
+Compared to CNN-based methods, GANs face two primary drawbacks: (1) they typically require additional classifiers 
+for training, making them less efficient as stand-alone classification models, and (2) their overall classification 
+accuracy tends to be lower than that of CNN-based approaches. Given these constraints, GAN-based methods are not 
+considered in this study.
+
+\section{Conclusion}
+
+Deep learning has significantly advanced remote sensing image classification, with CNN-based 
+approaches achieving state-of-the-art performance. Among the different strategies explored 
+in the literature, fine-tuning pretrained CNNs has proven to be the most effective for tasks 
+with limited labeled data, offering a strong balance between computational efficiency and accuracy.
+
+Ensemble learning methods, such as the Hydra framework, have further demonstrated their 
+effectiveness in handling complex classification problems. By leveraging multiple CNN 
+architectures and combining their outputs through majority voting, ensemble models enhance 
+generalization and reduce the impact of individual model biases. This approach is 
+particularly relevant to fire risk classification, where subtle differences between 
+risk categories and interclass similarity can pose significant challenges.
+
+Given these findings, this study will explore the application of an ensemble-based 
+method for fire risk classification. By integrating models such as ResNet-50, DenseNet-161, 
+and EfficientNet-B5, we aim to leverage the strengths of each architecture to improve 
+prediction robustness. A majority voting strategy will be employed to ensure stable 
+and reliable classifications, mitigating potential biases from individual models. 

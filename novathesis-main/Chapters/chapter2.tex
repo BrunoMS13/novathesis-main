@@ -82,21 +82,19 @@ on the test set to assess its performance and generalization capabilities.
 
 \subsubsection{Evaluation}
 
-To evaluate the performance of a supervised learning model, various metrics are used,
-such as accuracy, precision, recall, F1 score, and kappa statistic. These metrics help
-in assessing the model's performance, identifying areas for improvement, and comparing
-different models.
+To assess the performance of the binary classification model, standard evaluation metrics 
+such as accuracy, precision, recall, and F1 score are used. These metrics provide a 
+comprehensive analysis of the model's ability to correctly classify fire risk levels.
 
-The accuracy of a model is the proportion of correct predictions to the total number
-of predictions \eqref{eq:accuracy}. While simple and intuitive, accuracy can be misleading
-when dealing with imbalanced datasets. Precision measures the proportion of true positive
-predictions to the total number of positive predictions \eqref{eq:precision}, which is useful
-when the cost of false positives is high. Recall, also known as sensitivity, measures the
-proportion of true positive predictions to the total number of actual positive instances
-\eqref{eq:recall}, making it useful when the cost of false negatives is high. The F1 score, the
-harmonic mean of precision and recall \eqref{eq:f1}, balances the two metrics and provides a
-more comprehensive performance measure \cite{vidalwadi2024}.
-
+Accuracy measures the proportion of correct predictions to the total number of predictions 
+\eqref{eq:accuracy}. However, in imbalanced datasets, accuracy alone may not be a reliable 
+indicator of performance. Precision evaluates the proportion of true positive predictions 
+relative to the total predicted positives \eqref{eq:precision}, which is particularly 
+useful when false positives must be minimized. Recall, also known as sensitivity, 
+measures the proportion of true positives among actual positive instances \eqref{eq:recall}, 
+which is important when false negatives are costly. F1 score, the harmonic mean 
+of precision and recall, provides a balanced metric when both false positives and false 
+negatives are critical \eqref{eq:f1} \cite{vidalwadi2024}.
 
 \begin{equation}
     Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
@@ -117,36 +115,22 @@ more comprehensive performance measure \cite{vidalwadi2024}.
     F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
     \label{eq:f1}
 \end{equation}
-In these equations:
+
+where:
 \begin{itemize}
-    \item True Positives (TP): The number of correctly predicted positive instances.
-    \item True Negatives (TN): The number of correctly predicted negative instances.
-    \item False Positives (FP): The number of instances incorrectly predicted as positive.
-    \item False Negatives (FN): The number of instances incorrectly predicted as negative.
+    \item True Positives (TP): Correctly predicted positive instances.
+    \item True Negatives (TN): Correctly predicted negative instances.
+    \item False Positives (FP): Incorrectly predicted positive instances.
+    \item False Negatives (FN): Incorrectly predicted negative instances.
 \end{itemize}
 
-In addition to these metrics, the kappa statistic \eqref{eq:kappa} is used to evaluate the agreement
-between predicted and actual classifications, accounting for the possibility of agreement
-occurring by chance. It is especially useful for imbalanced datasets. Kappa values range
-from -1 to 1, where 1 indicates perfect agreement, 0 indicates no agreement beyond chance,
-and negative values indicate disagreement \cite{kappa}. The kappa statistic is calculated as follows:
-\begin{equation}
-    \kappa = \frac{P_o - P_e}{1 - P_e}
-    \label{eq:kappa}
-\end{equation}
-where \(P_o\) is the observed agreement and \(P_e\) is the expected agreement by chance.
+Since the problem involves binary classification, evaluation focuses on precision-recall 
+trade-offs rather than multi-class extensions such as macro/micro averaging. Precision 
+is critical in cases where false alarms should be minimized, while recall is prioritized 
+when missing fire-prone areas poses greater risks. The F1 score balances these concerns, 
+ensuring a robust measure of model performance.
 
-Including the kappa statistic in the evaluation framework provides a more reliable assessment
-of model performance, ensuring that the model's effectiveness is thoroughly evaluated.
 
-For multiclass classification problems, such as our own, evaluation metrics can be extended
-to provide a more comprehensive assessment. One approach is macro-averaging, where the
-metric is calculated independently for each class and then averaged. This method treats
-all classes equally. Another approach is micro-averaging, which aggregates the contributions
-of all classes to compute the average metric, treating all instances equally. Additionally,
-weighted-averaging calculates the metric independently for each class and then takes the
-average, weighted by the number of true instances for each class. These methods ensure that
-the evaluation metrics accurately reflect the performance across all classes.
 
 
 \subsection{Unsupervised Learning}
@@ -387,31 +371,25 @@ parameters.
 
 
 \subsubsection{Modern CNN Architectures}
-Modern \gls{cnn} have significantly advanced the field
-of computer vision and are highly suitable for complex image analysis tasks such as our
-classification problem at hand. By leveraging the unique capabilities of existing advanced
-architectures, we can help contributing for our fire risk assessment model.
+Modern \gls{cnn} architectures have significantly enhanced computer vision applications, enabling 
+highly effective feature extraction and classification in complex image analysis tasks, including 
+fire risk assessment. By leveraging well-established architectures, we can build a robust model 
+without designing a new network from scratch.
 
-Some of the most popular CNN architectures include AlexNet \cite{krizhevsky2012imagenet}, VGGNet
-\cite{simonyan2014very}, ResNet \cite{he2016deep}, DenseNet \cite{huang2017densely} and Inception \cite{szegedy2015going},
-they have introduced several innovations that can be beneficial for our classification.
-For example, ResNet learns residual functions with reference to the layer inputs rather
-than learning unreferenced functions. Instead of hoping each few stacked layers directly
-fit a desired underlying mapping, residual networks let these layers fit a residual mapping.
-They stack residual blocks to form a deep network that can be trained using standard
-backpropagation techniques. This architecture has proven to be highly effective in training
-very deep neural networks \cite{DBLP:journals/corr/HeZRS15}.
+Some of the most widely used CNN models include ResNet \cite{he2016deep}, DenseNet \cite{huang2017densely}, 
+Inception \cite{szegedy2015going}, and EfficientNet \cite{efficientnet}. These architectures have introduced 
+various optimizations, such as deeper network designs, residual connections, and parameter efficiency, 
+which enhance feature learning and improve classification performance.
 
-While image segmentation could potentially aid in easier identification of critical
-features like vegetation and structures around houses, it requires extensive labeled
-data for training. Currently, our dataset is specifically labeled for fire risk classification
-rather than detailed image segmentation. This limitation makes pursuing segmentation techniques
-challenging without additional labeled data.
+For fire risk classification, selecting an appropriate CNN model involves balancing accuracy, computational 
+efficiency, and generalization ability. Given the complexity of aerial imagery and the need for robust 
+feature extraction, we incorporate CNN architectures that have demonstrated strong performance in 
+remote sensing and classification tasks.
 
-Given these considerations, our focus remains on leveraging the strengths of CNN architectures
-for classification tasks related to fire risk assessment. This approach allows us to effectively
-utilize the available labeled data to predict fire risk based on identified features without
-the need for extensive segmentation.
+Rather than employing image segmentation techniques, which require extensive labeled data, we focus 
+on leveraging CNNs for direct fire risk classification. This allows us to maximize the predictive 
+capabilities of our dataset while avoiding the challenges associated with segmentation-based approaches.
+
 
 \subsubsection{Transfer Learning}
 
@@ -437,31 +415,6 @@ weights pre-trained on such datasets, transfer learning accelerates convergence 
 generalization on new datasets with fewer labeled examples. This approach has been pivotal in
 achieving state-of-the-art results in various domains, including image classification, object
 detection, and natural language processing.
-
-\subsection{Ensemble Methods}
-
-In addition to the modern CNN architectures discussed, ensemble methods can provide
-significant improvements in classification tasks, particularly in complex domains
-such as our fire risk assessment. Ensemble methods work by combining multiple models
-to produce a single, more accurate model. The idea is that by aggregating the
-predictions of multiple models, the overall performance can be enhanced, leading to
-better generalization and robustness.
-
-There are several ways ensembles can be applied. One example, that could be relevant to our problem is training
-models separately on different parameters. For instance, in fire risk classification,
-which is influenced by various factors such as the distance of a house from different
-types of vegetation, training individual models for each parameter can improve the
-overall classification accuracy. This approach helps pinpoint issues in the classification
-process and enhances the overall model's performance.
-
-Using a single model to handle all the specific parameters might struggle to
-find patterns due to the complexity of the data. By training separate CNN models for
-different identification tasks and then combining their outputs in a final MLP
-(Multi-Layer Perceptron) model, we can more effectively classify the fire risk of a house.
-This ensemble approach allows each CNN to specialize in a specific aspect of the data, and
-the final MLP can integrate these specialized insights to produce a more accurate and
-reliable classification.
-
 
 
 \subsection{Autoencoders}
@@ -550,108 +503,113 @@ a significant tool in the arsenal of modern machine learning methods.
 
 \subsection{Loss Functions}
 Loss functions measure the difference between predicted and actual values during model training.
-These functions play a crucial role in guiding the optimization
-process towards improving model accuracy and generalization. The choice of an appropriate
-loss function depends on the nature of the task, whether it involves regression, binary
-classification, or multi-class classification. This section explores several key loss
-functions commonly used in the training of neural networks.
+They play a crucial role in guiding the optimization process toward improving model accuracy and 
+generalization. The choice of an appropriate loss function depends on the nature of the task, 
+whether it involves regression or binary classification. This section explores key loss 
+functions commonly used in deep learning.
 
 \subsubsection{Mean Squared Error (MSE)}
-Mean Squared Error is widely used for regression tasks. It calculates the average
-of the squared differences between predicted and actual values:
+Mean Squared Error is widely used for regression tasks. It calculates the average of the squared 
+differences between predicted and actual values \cite{goodfellow2016deep}:
+
 \begin{equation}
     \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
     \label{eq:mse}
 \end{equation}
-where \( y_i \) is the actual value and \( \hat{y}_i \) is the predicted value. MSE
-is sensitive to outliers due to the squaring term, making large errors more significant.
 
-\subsubsection{Cross-Entropy Loss}
-Cross-Entropy Loss, also known as log loss, is used for classification tasks.
-It measures the performance of a classification model whose output is a probability
-value between 0 and 1:
+where \( y_i \) is the actual value and \( \hat{y}_i \) is the predicted value. MSE is 
+sensitive to outliers due to the squaring term, making large errors more significant.
 
-\begin{equation}
-    \text{Cross-Entropy Loss} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
-    \label{eq:cross-entropy}
-\end{equation}
-where \( y_i \) is the actual binary label and \( \hat{y}_i \) is the predicted probability.
-For multi-class classification, a generalized version called categorical cross-entropy is used.
-
-\subsubsection{Categorical Cross-Entropy Loss}
-Categorical Cross-Entropy Loss is used for multi-class classification tasks where each
-sample can belong to one of several classes, aligning to our problem.
-It is an extension of the binary cross-entropy loss:
+\subsubsection{Binary Cross-Entropy (BCE) Loss}
+Binary Cross-Entropy (BCE) is a standard loss function for binary classification, 
+measuring the difference between predicted and actual class probabilities \cite{murphy2012machine}. 
+It is defined as:
 
 \begin{equation}
-    \text{Categorical Cross-Entropy Loss} = -\sum_{i=1}^{n} \sum_{j=1}^{k} y_{ij} \log(\hat{y}_{ij})
-    \label{eq:categorical-cross-entropy}
+    \text{BCE} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
+    \label{eq:bce}
 \end{equation}
-where \( y_{ij} \) is a binary indicator (0 or 1) if class label \( j \) is the correct classification for observation \( i \), \( \hat{y}_{ij} \) is the predicted probability that observation \( i \) belongs to class \( j \), and \( k \) is the number of classes. This loss function encourages the predicted probability to be high for the correct class and low for all other classes.
 
+where \( y_i \) is the true label (0 or 1), and \( \hat{y}_i \) is the predicted probability. 
+A lower BCE value indicates a better prediction. BCE is widely used in neural networks where 
+outputs represent probabilities.
+
+\subsubsection{BCEWithLogitsLoss}
+BCEWithLogitsLoss is a numerically stable variation of Binary Cross-Entropy that integrates 
+the sigmoid activation function directly into the loss computation \cite{kingma2015adam}:
+
+\begin{equation}
+    \text{BCEWithLogitsLoss} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\sigma(z_i)) + (1 - y_i) \log(1 - \sigma(z_i))]
+    \label{eq:bce-logits}
+\end{equation}
+
+where \( z_i \) is the raw model output (logits), and \( \sigma(z_i) \) is the sigmoid function:
+
+\begin{equation}
+    \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+
+Unlike standard BCE, which requires applying a sigmoid activation function to model outputs, 
+BCEWithLogitsLoss computes both the activation and loss in a single step, preventing numerical 
+instabilities and gradient vanishing issues. This is particularly useful in deep learning 
+models with large-scale datasets \cite{ruder2016overview}.
 
 \subsection{Optimization Algorithms}
-Optimization algorithms play a crucial role in training \gls{dl} models by
-minimizing the loss function and adjusting the model's parameters. These algorithms
-iteratively update the weights of the neural network to find the set of parameters
-that best fits the training data. The choice of optimization algorithm can significantly
-impact the model's performance and training efficiency \cite{ruder2016overview}.
 
-\subsubsection{Gradient Descent}
+Optimization algorithms play a crucial role in training \gls{dl} models by 
+minimizing the loss function and adjusting the model's parameters. These algorithms 
+iteratively update the weights of the neural network to improve its predictions, 
+directly affecting model convergence speed and generalization ability \cite{ruder2016overview}. 
 
-Gradient Descent is one of the most fundamental optimization algorithms. It works
-by calculating the gradient of the loss function with respect to the model parameters
-and then updating the parameters in the opposite direction of the gradient. The update
-rule for Gradient Descent is given by:
+\subsubsection{Gradient Descent and Stochastic Gradient Descent (SGD)}
+
+Gradient Descent is one of the most fundamental optimization algorithms, updating 
+parameters in the direction that reduces the loss function:
 
 \begin{equation}
     \theta = \theta - \eta \nabla_\theta J(\theta)
 \end{equation}
-where \( \theta \) represents the model parameters, \( \eta \) is the learning rate,
-and \( \nabla_\theta J(\theta) \) is the gradient of the loss function \( J \) with respect
-to \( \theta \). While effective, standard Gradient Descent can be slow and may get stuck
-in local minima.
 
-\subsubsection{Stochastic Gradient Descent (SGD)}
+where \( \theta \) represents the model parameters, \( \eta \) is the learning rate, 
+and \( \nabla_\theta J(\theta) \) is the gradient of the loss function.  
 
-Stochastic Gradient Descent (SGD) is a variation of Gradient Descent that updates the
-model parameters using a single training example or a small batch of examples at each
-iteration. This introduces noise into the optimization process, which can help the
-algorithm escape local minima and converge faster. The update rule for SGD is:
+Stochastic Gradient Descent (SGD) improves upon standard Gradient Descent by 
+updating weights after processing small batches of data rather than the entire dataset.  
+This introduces noise into the optimization process, helping escape local minima 
+but requiring careful tuning of hyperparameters.
 
-\begin{equation}
-    \theta = \theta - \eta \nabla_\theta J(\theta; x^{(i)}, y^{(i)})
-\end{equation}
-where \( (x^{(i)}, y^{(i)}) \) represents a single training example. While SGD can converge
-faster than batch Gradient Descent, it may result in a noisier optimization process.
+\subsubsection{Adam: Adaptive Moment Estimation}
 
-\subsubsection{Adam}
+Adam (Adaptive Moment Estimation) \cite{kingma2015adam} is an extension of SGD that 
+maintains per-parameter learning rates by computing adaptive estimates of first and 
+second moments of gradients. This allows it to perform well in noisy environments 
+and sparse gradients, making it widely used for deep learning:
 
-The Adam (Adaptive Moment Estimation) optimizer combines the advantages of two other
-popular optimization algorithms: AdaGrad and RMSProp \cite{ruder2016overview}. Adam maintains adaptive learning
-rates for each parameter by computing the first and second moments of the gradients.
-The update rule for Adam is:
-
-\begin{equation}
-    m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t
-\end{equation}
-\begin{equation}
-    v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2
-\end{equation}
-\begin{equation}
-    \hat{m}_t = \frac{m_t}{1 - \beta_1^t}
-\end{equation}
-\begin{equation}
-    \hat{v}_t = \frac{v_t}{1 - \beta_2^t}
-\end{equation}
 \begin{equation}
     \theta_t = \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
 \end{equation}
-where \( g_t \) is the gradient at time step \( t \), \( m_t \) and \( v_t \) are the first
-and second moment estimates, \( \beta_1 \) and \( \beta_2 \) are the exponential decay rates
-for these estimates, and \( \epsilon \) is a small constant for numerical stability. Adam is
-widely used because of its efficiency and effectiveness in handling sparse gradients and
-non-stationary objectives.
+
+where \( \hat{m}_t \) and \( \hat{v}_t \) are bias-corrected estimates of the mean 
+and uncentered variance of gradients, respectively. While Adam is computationally 
+efficient and robust, one limitation is that its weight decay is applied incorrectly, 
+leading to potential overfitting \cite{loshchilov2019decoupled}.
+
+\subsubsection{AdamW: Decoupled Weight Decay}
+
+To address Adam's weight decay limitations, AdamW \cite{loshchilov2019decoupled} 
+was introduced, modifying how weight decay is applied. Unlike standard Adam, 
+which applies L2 regularization during parameter updates, AdamW decouples weight 
+decay from the optimization step, leading to improved generalization:
+
+\begin{equation}
+    \theta_t = \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} - \eta \lambda \theta_{t-1}
+\end{equation}
+
+This modification ensures that weight decay behaves as true regularization, preventing 
+it from interfering with adaptive learning rates. Studies have shown that AdamW 
+achieves superior performance on deep neural networks, particularly when training 
+models with high-capacity architectures like ResNet and EfficientNet \cite{loshchilov2019decoupled}.
+
 
 
 \section{Fundamentals of Aerial Photographs: RGB and IRG}
