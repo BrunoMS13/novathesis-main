@@ -5,7 +5,7 @@
 \label{cha:methodology}
 
 In this chapter, we explain the methodology used in the development of this work. We begin 
-by detailing how the data was obtained and the logic behind its selection. Additionally, we 
+by detailing how the data was obtained and the rationale behind its selection. Additionally, we 
 present the data augmentation techniques applied to the dataset and describe the methodology 
 employed in training the models.
 
@@ -14,7 +14,7 @@ employed in training the models.
 The \gls{dgt} conducted an extensive aerial photogrammetric survey of Continental Portugal, 
 resulting in a high-resolution orthophoto dataset covering the years 2018 to 2021. 
 These orthophotos provide a valuable resource for geographic and environmental analysis, 
-including fire risk assessment.
+including housing fire risk assessment.
 
 \subsection{Technical Specifications}
 The orthophotos used in this study have the following characteristics:
@@ -36,10 +36,10 @@ The orthophotos used in this study have the following characteristics:
 The orthophotos are publicly available through a Web Map Tile Service (WMTS), allowing for 
 efficient data retrieval and integration into research applications. Our dataset consists of 
 RGB and IRG orthophotos extracted from this open data source. To automate image retrieval, 
-a Python module was developed to extract images based on bounding box coordinates corresponding 
-to the residential locations in the dataset. In total, 1929 RGB and IRG images were acquired.
+a Python module was developed to extract images using bounding boxes centered on 
+the residential locations in the dataset. In total, 1930 RGB and IRG images were acquired.
 
-For fire risk assessment, a 62.5-meter radius was defined to ensure that the analysis 
+For housing fire risk assessment, a 62.5-meter radius was defined to ensure that the analysis 
 captures the area surrounding each house within at least 50 meters, with the additional 
 12.5 meters accounting for the house itself. This approximation accounts for variability in 
 house shape and size. Each extracted image is represented as a 500 x 500 pixel tile.
@@ -63,20 +63,136 @@ house shape and size. Each extracted image is represented as a 500 x 500 pixel t
     \label{fig:rgb-irg-comparison}
 \end{figure}
 
+\subsection{Ground Truth Collection}
+
+The housing fire risk classifications provided by the \gls{adai} study were stored in a `.kmz` 
+file format, viewable through Google Earth. This format allows for the visualization of the 
+exact locations of isolated houses and their assigned fire risk levels. As illustrated in 
+Figure \ref{fig:gearth_vis}, the classifications are color-coded: blue for low risk, green 
+for moderate, yellow for high, orange for very high, and red for extreme risk.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{../Figures/GoogleEarthVis.png}
+    \caption{Visualization of classified houses in Braga using Google Earth.}
+    \label{fig:gearth_vis}
+\end{figure}
+
+To utilize this data, a Python script was developed to parse the `.kmz` file and extract the 
+coordinates and corresponding risk levels for each house. The extracted information was saved 
+into a `.csv` file, which was then used by the data collection pipeline to retrieve aerial 
+imagery from the \gls{dgt} orthophoto service.
+
+The final dataset consists of 1930 isolated houses across Portugal, categorized into five fire 
+risk levels, as shown in Table~\ref{fig:data-distribution}.
+
+\begin{table}[ht]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{12pt}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Fire Risk} & \textbf{Number of Houses} \\ 
+        \midrule
+        Low                &  25   \\ 
+        Moderate           &  210  \\ 
+        High               &  781  \\ 
+        Very High          &  763  \\ 
+        Extreme            &  151  \\ 
+        \midrule
+        \textbf{Total}     & \textbf{1930} \\ 
+        \bottomrule
+    \end{tabular}
+    \caption{Distribution of housing fire risk classifications in the dataset.}
+    \label{fig:data-distribution}
+\end{table}
+\subsection{Dataset Challenges and Simplification Strategy}
+
+With the aerial imagery and fire risk labels collected, we next analyze the 
+limitations and challenges inherent to this dataset.
+These include interclass similarity, lighting variability, and 
+class imbalance. To address them, a label simplification strategy 
+was adopted.
+
+\subsubsection*{Interclass Similarity and Visual Ambiguity}
+
+Distinguishing between adjacent fire risk levels, such as High and Very High, is 
+very difficult due to overlapping visual features like vegetation density and 
+proximity to structures. These subtle distinctions are often hard to capture 
+from a top-down perspective, as illustrated in Figure \ref{fig:veryhigh-vs-high}.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/VC83.png}
+        \caption{Very High Risk House}
+        \label{fig:vc83}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/VR95.png}
+        \caption{High Risk House}
+        \label{fig:vc102}
+    \end{minipage}
+    \caption{Very High and High Fire Risk Areas, respectively, in \gls{irg} format.}
+    \label{fig:veryhigh-vs-high}
+\end{figure}
+
+\subsubsection*{Lighting Variability}
+
+The aerial imagery in the dataset was collected under a range of environmental 
+conditions, leading to inconsistencies in lighting, shadow, and contrast. 
+Images captured at different times of day or under varying cloud cover can 
+obscure important vegetation details. Figure \ref{fig:dark-bright-comparison} 
+demonstrates this variation between images from Coimbra and Portalegre.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/darker_house_image.png}
+        \caption{Example in lower brightness conditions.}
+        \label{fig:darker}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/brighter_house_image.png}
+        \caption{Example in higher brightness conditions.}
+        \label{fig:brighter}
+    \end{minipage}
+    \caption{Aerial photographs under different lighting conditions.}
+    \label{fig:dark-bright-comparison}
+\end{figure}
+
+\subsubsection*{Class Imbalance}
+
+As shown in Table \ref{fig:data-distribution}, the dataset is heavily skewed, 
+with the majority of samples labeled as High or Very High risk. This imbalance 
+can cause deep learning models to become biased toward these dominant classes, 
+resulting in poor performance on underrepresented labels like Low and Moderate.
+
+\subsubsection*{Label Consolidation}
+
+To mitigate the effects of both interclass ambiguity and imbalance, the original 
+five fire risk levels were consolidated into two broader categories: 
+\textit{Managed Fuels} (Low, Moderate, High) and \textit{Non-Managed Fuels} 
+(Very High, Extreme). This restructuring yielded a more balanced dataset, 1016 and 
+914 samples per class, respectively, while preserving meaningful distinctions 
+relevant to fire risk. Although this binary classification reduces granularity, 
+it provides a more stable foundation for model training and evaluation. A return 
+to multi-class classification may be viable in future work with a more evenly 
+distributed dataset.
+
 
 \section{Data Augmentation}
 
-To enhance the dataset and improve model generalization, various data augmentation 
-techniques were applied. These augmentations introduce diversity, helping the model 
-learn robust features while mitigating overfitting, a crucial factor given the dataset's relatively 
-small size and the complexity of the classification task.
-
-Deep learning models, particularly complex architectures, have a high capacity for 
-capturing intricate relationships in data. However, when trained on limited data, 
-they are prone to memorizing training images rather than learning meaningful 
-patterns. By applying data augmentation, the model encounters different variations 
-of the same data, reducing its reliance on exact memorization and improving 
-its ability to generalize to unseen samples.
+Given the dataset limitations, several data augmentation techniques were applied to 
+increase training diversity and improve model generalization. These augmentations help 
+the model learn robust features while mitigating overfitting—an important consideration 
+given the relatively small dataset size and the complexity of the classification task.
 
 \begin{table}[ht]
     \centering
@@ -101,36 +217,37 @@ employed \cite{torchvision2016}. Horizontal and vertical flips were applied
 with a probability of 50\%, ensuring that vegetation and terrain appear in 
 varied orientations relative to houses. Random rotations within a $[-30^{\circ}, 30^{\circ}]$ 
 range further increased variability, allowing the model to recognize patterns from 
-different perspectives. Additionally, brightness adjustments within a $[-20\%, 20\%]$ 
-range accounted for lighting variations due to different capture times and cloud cover.
+different perspectives. Brightness adjustments within a $[-20\%, 20\%]$ range 
+were used to simulate lighting variations caused by different capture times or weather conditions.
 
-The following example in Figure \ref{fig:dark-bright-comparison} illustrate the brightness
-variation in aerial photographs.
+The same augmentation techniques were applied to both RGB and IRG images; however, 
+they were applied randomly during training, ensuring that no two training instances 
+were identical. Some augmentations, particularly brightness adjustments, may behave 
+differently between the two formats due to their distinct spectral properties, 
+further contributing to dataset variability.
 
-\begin{figure}[ht]
-    \centering
-    \begin{minipage}[b]{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/darker_house_image.png}
-        \caption{Example of an aerial photograph in lower brightness conditions.}
-        \label{fig:darker}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[b]{0.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/brighter_house_image.png}
-        \caption{Example of an aerial photograph in higher brightness conditions.}
-        \label{fig:brighter}
-    \end{minipage}
-    \caption{Aerial photographs taken in Coimbra and Portalegre, respectively, under different lighting conditions.}
-    \label{fig:dark-bright-comparison}
-\end{figure}
+\subsection{Image Preprocessing}
 
-It is important to note that while the same augmentation techniques were applied to 
-both RGB and IRG images, they were applied randomly during training. As a result, no two 
-training instances were identical. Additionally, some augmentations, such as 
-brightness variation, may behave differently between the two formats due to 
-differences in spectral information, further increasing dataset variability.
+Prior to training, all input images were normalized using modality-specific 
+mean and standard deviation values. This preprocessing step ensures consistent 
+scaling across inputs, which is crucial for stable and effective deep learning model training. 
+Normalization was applied independently for RGB, IRG, and NDVI representations.
+
+These statistics were computed using a custom Python script that iterated over 
+the training dataset to calculate the mean and standard deviation across all pixels and channels. 
+For RGB and IRG images, values were computed per channel; for NDVI, a single-channel vegetation index, 
+a global mean and standard deviation were calculated. The resulting values were:
+
+\begin{itemize}
+    \item \textbf{RGB:} Mean = [0.4109, 0.3848, 0.3479], Std = [0.1963, 0.1623, 0.1376]
+    \item \textbf{IRG:} Mean = [0.5130, 0.4105, 0.3839], Std = [0.1694, 0.1970, 0.1628]
+    \item \textbf{NDVI:} Mean = 0.1542, Std = 0.1946
+\end{itemize}
+
+Normalization was applied after data augmentation and before feeding images into the model 
+during training. For RGB+NDVI inputs, the NDVI channel was concatenated with the RGB tensor 
+and normalized using its respective statistics. This modality-specific normalization helps 
+account for differences in spectral characteristics and dynamic ranges across the various input types.
 
 
 \section{Environment Setup}
@@ -168,75 +285,83 @@ ensuring consistency across different experiments. This setup facilitates effici
 experimentation without requiring modifications to the core training script.
 
 
-\section{Training, Validation, and Testing}
+\section{Model Training and Evaluation}
+
 
 This section outlines the methodology used for training, validation, and testing of the 
 chosen models. The discussion of the results is deferred to a later chapter.
 
-\subsection{Dataset Splitting and Augmentation}
-
-The dataset is initially divided into training and testing sets using a 90\% / 10\% 
-split, resulting in approximately 1736 training samples and 193 testing samples. 
-To monitor the model's learning progress, the training set is further split into 80\% 
-training and 20\% validation, yielding 1388 non-augmented training samples and 
-348 validation samples.
-
-To enhance model generalization, data augmentation is applied during training. Horizontal 
-and vertical flips introduce four variations per image, while random rotation and 
-brightness adjustments create a large number of unique transformations across multiple epochs. 
-Although the exact number of augmented samples cannot be directly quantified, this process 
-effectively expands the dataset, improving robustness against overfitting.
-
 \subsection{Training Methodology}
 
-The training process follows a transfer learning approach, where pre-trained models 
-are fine-tuned for fire risk classification. Models are initialized with ImageNet weights 
-and trained using the AdamW optimizer. The loss function used is Binary Cross-Entropy 
-with Logits Loss (BCEWithLogitsLoss), which is well-suited for binary classification tasks.
+The training process follows a transfer learning approach, in which pre-trained 
+models are fine-tuned for the housing fire risk classification task. All models 
+are initialized with ImageNet weights and optimized using the AdamW optimizer. 
+The loss function used is Binary Cross-Entropy with Logits Loss (BCEWithLogitsLoss), 
+which is well-suited for binary classification problems.
 
-To prevent overfitting, an early stopping mechanism is implemented, stopping training 
-if the validation loss does not improve for five consecutive epochs (patience parameter). 
-Based on observations of validation loss stabilization, training typically lasts between 15 
-and 21 epochs. Additionally, the best-performing model (determined by validation loss) is 
-saved to ensure the most effective version is retained.
+To prevent overfitting, an early stopping mechanism is applied: training halts 
+if the validation loss does not improve for five consecutive epochs. Based on 
+observed validation dynamics, training typically converges between 15 and 21 
+epochs. The best-performing model, determined by lowest validation loss, is saved 
+for final evaluation.
 
-Training is conducted using a batch size of 16 for ResNet-50 and 8 for EfficientNet-B5 
-and DenseNet-161, due to GPU memory constraints. 
+Due to GPU memory constraints, a batch size of 16 is used for ResNet-50, while 
+EfficientNet-B5 and DenseNet-161 are trained with a batch size of 8.
 
-To ensure robustness and reliability, all training, validation, and testing runs are repeated 
-multiple times allowing for a more accurate assessment of model 
-performance and generalization.
+To ensure robustness and reproducibility, all training, validation, and testing 
+procedures are repeated three times. Results are averaged to provide a stable
+and reliable performance estimate. Each run uses a fixed random seed, and the 
+same seed is applied across all models within a given run (e.g., run 1 uses 
+seed A for every model, run 2 uses seed B, and so on). This ensures consistency 
+across architectures while capturing variability between runs.
+
+Cross-validation was not employed in this work due to the high computational 
+cost associated with training deep convolutional models, particularly in ensemble 
+settings. While k-fold cross-validation can yield more robust performance estimates, 
+it is computationally intensive when applied to deep learning pipelines. Instead, 
+repeating experiments with fixed seeds and averaging the results provides a 
+practical compromise, capturing performance variability while maintaining feasibility 
+given available resources.
+
 
 \subsection{Model Evaluation}
 
-To assess model performance, we analyze both training progress metrics at the best validation loss epoch and 
-final evaluation metrics on independent test data. The key evaluation metrics used include:
+To assess model performance, we primarily rely on training and validation metrics.
+Model selection is based on validation performance, specifically, the epoch 
+with the lowest validation loss. Test accuracy and F1-score are reported 
+solely to assess generalization ability and are not used during model 
+selection or tuning.
+
+The key evaluation metrics include:
 
 \begin{itemize}
-    \item \textbf{Validation Accuracy and Loss}: Tracked across epochs to monitor learning stability.
-    \item \textbf{Training Accuracy and Loss}: Stored for each epoch to analyze potential overfitting or underfitting.
-    \item \textbf{Test Accuracy}: Measures the model's ability to correctly classify unseen samples.
-    \item \textbf{Test F1-score}: Provides a balanced evaluation of precision and recall, crucial for imbalanced datasets.
+    \item \textbf{Validation Accuracy and Loss}: Tracked across epochs to monitor learning dynamics and select the best-performing checkpoint.
+    \item \textbf{Training Accuracy and Loss}: Used to analyze the learning curve and detect signs of overfitting or underfitting.
+    \item \textbf{Test Accuracy}: Reflects how well the selected model generalizes to unseen data.
+    \item \textbf{Test F1-score}: A balanced measure of precision and recall, particularly relevant given the dataset's class imbalance.
 \end{itemize}
 
-To facilitate further analysis, all training metrics (accuracy, loss, and validation performance) 
-are recorded and stored in a JSON file at each epoch.
+All metrics, including training/validation loss and accuracy, 
+are stored in JSON format for each epoch to enable further analysis 
+and reproducibility.
 
-Each model is trained using the three different input types: RGB, IRG, and RGB+NDVI. The performance 
-of each configuration is analyzed to determine the most effective feature representation for fire risk 
-classification.
+
+Each model is trained using three different input configurations: RGB, 
+IRG, and RGB+NDVI. Performance across these representations is compared 
+to determine the most effective feature set for housing fire risk classification.
+
 
 \subsection{Training Strategy and Hyperparameter Tuning}
 
 The training process is structured into different stages to optimize model performance:
 
 \begin{itemize}
-    \item Learning Rate Tuning: Models are first trained with varying learning rates to determine the optimal initial rate.
-    \item Weight Decay Optimization: Once an appropriate learning rate is established, different weight decay values are tested to improve generalization.
-    \item Gradual Unfreezing (DenseNet-161): Due to its initial suboptimal performance, a gradual unfreezing strategy was employed for DenseNet-161, as explained in the next section.
+    \item \textbf{Learning Rate Tuning:} Models are first trained with varying learning rates to determine the optimal initial rate.
+    \item \textbf{Weight Decay Optimization:} Once an appropriate learning rate is established, different weight decay values are tested to improve generalization on that learning rate.
+    \item \textbf{Gradual Unfreezing (DenseNet-161):} Due to its initial suboptimal performance, a gradual unfreezing strategy was employed for DenseNet-161, as explained in the next paragraph.
 \end{itemize}
 
-\subsubsection{Gradual Unfreezing Strategy for DenseNet-161}
+\subsubsection*{Gradual Unfreezing Strategy for DenseNet-161}
 
 Fine-tuning pre-trained models can lead to instability and overfitting, particularly when working 
 with smaller datasets. In initial training runs, unfreezing all layers of DenseNet-161 simultaneously 
@@ -257,10 +382,103 @@ incrementally unfrozen based on the current epoch. The process follows these ste
 This approach is designed to allow the model to first adapt high-level features (classifier), then 
 low-level spatial features, followed by mid-level and deep feature representations. By gradually 
 unfreezing layers, we aim to retain valuable pre-trained features while progressively adapting the 
-model to the fire risk classification task.
+model to the housing fire risk classification task.
 
 The impact of this strategy is further analyzed in the results section, where we evaluate its effect 
 on model performance.
+
+
+
+\section{Custom Classification Layer}
+
+To adapt the pre-trained architectures for the housing fire risk classification task, the default 
+fully connected (FC) layers of DenseNet-161, ResNet-50, and EfficientNet-B5 were 
+replaced with a custom classification head. This modification enhances the network's 
+ability to generalize while improving flexibility in learning complex patterns.
+
+Table \ref{tab:classification_layer} presents the architecture 
+of the custom classification layer.
+
+\begin{table}[ht]
+    \centering
+    \renewcommand{\arraystretch}{1.3} % Adjust row height
+    \setlength{\tabcolsep}{1pt} % Adjust column spacing
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Layer} & \textbf{Size} & \textbf{Activation} \\ 
+        \midrule
+        Fully Connected (FC1) & Input: extracted features, Output: 4096 & ReLU \\
+        Dropout & Probability: 0.4 & - \\
+        Fully Connected (FC2) & Input: 4096, Output: 4096 & ReLU \\
+        Dropout & Probability: 0.4 & - \\
+        Output Layer (Binary Classification) & Input: 4096, Output: 1 & Sigmoid \\
+        \bottomrule
+    \end{tabular}
+    \caption{Structure of the custom classification layer.}
+    \label{tab:classification_layer}
+\end{table}
+
+The custom classification layer consists of two fully connected (FC) layers with 
+ReLU activation, followed by dropout regularization to improve generalization. 
+The final layer outputs a single neuron with a Sigmoid activation function for 
+binary classification.
+
+The dropout rate of 0.4 was assumed based on standard deep learning practices, 
+aiming to prevent overfitting while preserving meaningful feature representations. 
+
+By integrating this custom classification layer, the model preserves the rich feature 
+representations extracted by the deep feature extractor while enhancing adaptability 
+to the housing fire risk classification task.
+
+
+\section{Ensemble Model}
+
+In search of improving classification performance, two ensemble models were explored: one using only 
+\gls{rgb} input and another incorporating multiple input types. The motivation behind these 
+ensembles was to leverage different deep learning architectures to enhance robustness 
+and generalization.
+
+\subsection{RGB-Only Ensemble}
+
+The first ensemble model, illustrated in Figure \ref{fig:rgb_ensemble}, was designed 
+using only \gls{rgb} images as input. While additional spectral information, such as near-infrared 
+(NIR) bands or vegetation indices like \gls{ndvi}, can be beneficial, \gls{rgb} data is often the most 
+accessible and widely available source of imagery. In many real-world scenarios, obtaining 
+\gls{irg} images or computing \gls{ndvi} may not always be feasible due to sensor limitations or data 
+availability. Therefore, this model serves as a baseline to evaluate how well fire risk 
+can be classified using only standard \gls{rgb} imagery.
+
+In this approach, \gls{rgb} images are processed through three different pre-trained architectures: 
+DenseNet-161, ResNet-50, and EfficientNet-B5. The predictions from these models are then 
+merged to produce the final classification result.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/EnsembleRGBOnly.drawio.pdf}
+    \caption{\gls{rgb}-based ensemble model combining DenseNet-161, ResNet-50, and EfficientNet-B5.}
+    \label{fig:rgb_ensemble}
+\end{figure}
+
+\subsection{Multi-Input Ensemble}
+
+The second ensemble model, shown in Figure \ref{fig:multi_input_ensemble}, was designed 
+to incorporate multiple input types and leverage additional spectral information. 
+This approach considers three different input types: \gls{rgb} images, \gls{irg} 
+images, and \gls{rgb} + \gls{ndvi} images.
+
+The \gls{rgb} and \gls{irg} inputs were processed separately through DenseNet-161, 
+ResNet-50, and EfficientNet-B5. To incorporate \gls{ndvi} information, the \gls{irg} 
+images were used to extract the \gls{ndvi} channel, which was then combined with \gls{rgb} 
+to create an additional \gls{rgb} + \gls{ndvi} input. This third input was processed 
+through the same three architectures.
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/EnsembleNDVI.png}
+    \caption{Multi-input ensemble model combining \gls{rgb}, \gls{irg}, and \gls{rgb} + \gls{ndvi} inputs.}
+    \label{fig:multi_input_ensemble}
+\end{figure}
 
 
 \subsection{Ensemble Merging Strategy and Evaluation}
@@ -273,7 +491,7 @@ decision-making power of multiple architectures.
 
 Majority voting was chosen over probability-based soft voting because it reduces the
 influence of individual model biases and works well when all models perform at a similar
-level. Additionally, given the binary nature of the fire risk classification task, majority
+level. Additionally, given the binary nature of the housing fire risk classification task, majority
 voting provided clear and stable results. 
 
 By implementing these ensemble strategies, the goal was to assess whether incorporating 
@@ -305,4 +523,4 @@ labeling inconsistencies or ambiguous features that make classification challeng
 By investigating these cases, we aim to identify whether the errors stem from systematic model 
 biases, limitations in the available features, or inaccuracies in the ground truth labels. 
 Understanding these misclassifications helps refine both the dataset and the models, ensuring 
-a more reliable and interpretable fire risk classification system.
+a more reliable and interpretable housing fire risk classification system.

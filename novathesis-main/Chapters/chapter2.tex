@@ -13,7 +13,7 @@
 
 In this section we aim to introduce some of the concepts that are relevant to the work
 presented in this thesis. These concepts include Machine Learning techniques,
-mainly toward Supervised Learning, and some very basic fundamentals about image types
+mainly Supervised Learning ones, and some very basic fundamentals about image types
 that are relevant to our thesis.
 
 \section{Machine Learning}
@@ -21,7 +21,7 @@ that are relevant to our thesis.
 statistical techniques to enable computer systems to learn from data, recognize
 patterns, and make predictions on new data. \gls{ml} is broadly categorized into
 supervised and unsupervised learning. The choice between these categories
-depend on the problem at hand; supervised learning is used when labeled
+depend on the problem and data at hand; supervised learning is used when labeled
 data is available, while unsupervised learning is used for finding hidden
 patterns in unlabeled data as seen in Figure \ref{fig:ml-tree}.
 
@@ -48,14 +48,12 @@ might include vegetation indices, texture, and spectral bands. These
 features help in distinguishing different vegetation types \cite{rs13081411} and therefore
 the associated fire risks.
 
-Normalization and standardization are crucial steps in \gls{ml}, particularly
-when dealing with diverse data types and scales. They ensure that each
-feature contributes equally to the model, improving the accuracy and
-robustness of the classifier.
-For satellite imagery, features can vary significantly in scale, which can pose challenges for
-classification algorithms \cite{Adegun2023}. Without normalization or standardization,
-certain features might disproportionately influence the classification
-process, leading to worse results.
+Normalization and standardization are crucial steps in \gls{ml}, especially when 
+handling data with varying types and scales. They ensure each feature contributes 
+equally to the model, enhancing classifier accuracy and robustness. In satellite 
+imagery, large variations in feature scale can challenge classification algorithms 
+\cite{Adegun2023}. Without proper normalization, some features may dominate the 
+classification process, leading to poorer results.
 
 \subsection{Supervised Learning}
 
@@ -80,9 +78,60 @@ trained by adjusting its parameters to minimize the error between the predicted
 and actual values on the training set. Once the model is trained, it is evaluated
 on the test set to assess its performance and generalization capabilities.
 
-\subsubsection{Evaluation}
 
-To assess the performance of the binary classification model, standard evaluation metrics 
+\subsection{Loss Functions}
+Loss functions measure the difference between predicted and actual values during model training.
+They play a crucial role in guiding the optimization process toward improving model accuracy and 
+generalization. The choice of an appropriate loss function depends on the nature of the task, 
+whether it involves regression or binary classification. This section explores key loss 
+functions commonly used in deep learning.
+
+\subsubsection{Mean Squared Error (MSE)}
+Mean Squared Error is widely used for regression tasks. It calculates the average of the squared 
+differences between predicted and actual values \cite{goodfellow2016deep}:
+
+\begin{equation}
+    \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+    \label{eq:mse}
+\end{equation}
+where \( y_i \) is the actual value and \( \hat{y}_i \) is the predicted value. MSE is 
+sensitive to outliers due to the squaring term, making large errors more significant.
+
+\subsubsection{Binary Cross-Entropy (BCE) Loss}
+Binary Cross-Entropy (BCE) is a standard loss function for binary classification, 
+measuring the difference between predicted and actual class probabilities \cite{murphy2012machine}. 
+It is defined as:
+
+\begin{equation}
+    \text{BCE} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
+    \label{eq:bce}
+\end{equation}
+where \( y_i \) is the true label (0 or 1), and \( \hat{y}_i \) is the predicted probability. 
+A lower BCE value indicates a better prediction. BCE is widely used in neural networks where 
+outputs represent probabilities.
+
+\subsubsection{BCEWithLogitsLoss}
+BCEWithLogitsLoss is a numerically stable variation of Binary Cross-Entropy that integrates 
+the sigmoid activation function directly into the loss computation \cite{kingma2015adam}:
+
+\begin{equation}
+    \text{BCEWithLogitsLoss} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\sigma(z_i)) + (1 - y_i) \log(1 - \sigma(z_i))]
+    \label{eq:bce-logits}
+\end{equation}
+where \( z_i \) is the raw model output (logits), and \( \sigma(z_i) \) is the sigmoid function:
+
+\begin{equation}
+    \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+
+Unlike standard BCE, which requires applying a sigmoid activation function to model outputs, 
+BCEWithLogitsLoss computes both the activation and loss in a single step, preventing numerical 
+instabilities and gradient vanishing issues. This is particularly useful in deep learning 
+models with large-scale datasets \cite{ruder2016overview}.
+
+\subsection{Evaluation Metrics in Classification}
+
+To assess the performance of classification models, standard evaluation metrics 
 such as accuracy, precision, recall, and F1 score are used. These metrics provide a 
 comprehensive analysis of the model's ability to correctly classify fire risk levels.
 
@@ -115,7 +164,6 @@ negatives are critical \eqref{eq:f1} \cite{vidalwadi2024}.
     F1 = 2 \times \frac{Precision \times Recall}{Precision + Recall}
     \label{eq:f1}
 \end{equation}
-
 where:
 \begin{itemize}
     \item True Positives (TP): Correctly predicted positive instances.
@@ -131,8 +179,6 @@ when missing fire-prone areas poses greater risks. The F1 score balances these c
 ensuring a robust measure of model performance.
 
 
-
-
 \subsection{Unsupervised Learning}
 
 Unsupervised Learning (UL) main goal is to discover hidden patterns
@@ -140,7 +186,9 @@ and structures within the data without explicit guidance.
 
 Unsupervised learning is particularly useful for tasks such as clustering, dimensionality
 reduction, and anomaly detection. For our problem, unsupervised learning does not
-apply directly, as we have labeled data for the fire risk classification.
+apply directly, as we have labeled data for the housing fire risk classification.
+
+
 
 \section{Deep Learning on Artificial Neural Networks}
 
@@ -159,17 +207,25 @@ numerous neurons that perform computations on the input data and pass the result
 to the subsequent layer. The hidden layers are responsible for learning progressively
 complex features of the data, whereas the output layer generates the final prediction.
 
+
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{../Figures/DNN.png}
+    \includegraphics[width=0.7\textwidth]{../Figures/DNN.png}
     \caption{Artificial Neural Network Example from \cite{deep_neural_network_img}.}
     \label{fig:dnn-example}
 \end{figure}
 
-The flexibility and power of deep neural networks make them highly suitable for a
-variety of complex tasks. Moreover, when it comes to image data and image classification,
-a specific type of \gls{dl} model, known as \gls{cnn},
-has proven to be exceptionally effective \cite{rs13224712}.
+\subsection{Artificial Neuron}
+
+To better understand how deep networks operate, we first look at the structure of an individual artificial neuron.
+Each neuron receives one or more inputs, multiplies them by associated weights, adds a bias, and passes the result through an activation function to produce the output.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../Figures/artificial_neuron.png}
+    \caption{Illustration of an artificial neuron showing inputs, weights, bias, activation function, and output from \cite{neuron_diagram_tds}.}
+    \label{fig:artificial-neuron}
+\end{figure}
 
 \subsection{Multilayer Perceptrons}
 
@@ -225,10 +281,17 @@ typically through gradient descent optimization \cite{zhang2021dive}.
 
 \subsubsection{Dropout}
 
-Dropout is a regularization technique used in fully connected layers to prevent
-overfitting. In standard dropout regularization, a fraction of the nodes in each
-layer is zeroed out, and each layer is then debiased by normalizing by the fraction
-of nodes that were retained as seen in Figure \ref{fig:dropout-example}. Specifically, with dropout
+A common challenge when training deep learning models is overfitting, a 
+situation where the model performs well on the training data but fails 
+to generalize to new, unseen examples. This often happens when the model
+becomes too complex relative to the dataset size, learning not only the underlying 
+patterns but also the noise and outliers.
+
+To reduce overfitting and improve generalization, various regularization techniques 
+are used during training. One of the most effective and widely used is dropout.
+
+Dropout works by randomly deactivating a fraction of the neurons in a layer during training. In standard dropout regularization, a fraction of the nodes in each
+layer is zeroed out, and each layer is then debiased by normalizing the remaining activations by the fraction that was kept, as shown in Figure~\ref{fig:dropout-example}. Specifically, with dropout
 probability \( p \), each intermediate activation \( h \) is replaced by a random
 variable \( h' \) as follows:
 
@@ -240,8 +303,10 @@ variable \( h' \) as follows:
     \end{cases}
 \]
 
-During training, this process prevents the network from becoming too reliant on
-specific neurons, encouraging it to learn more robust features. Typically, dropout
+During training, this random omission of neurons prevents the network from becoming 
+too reliant on specific pathways, forcing it to learn redundant and distributed 
+representations. This reduces the risk of overfitting, as the model becomes less 
+sensitive to noise or specific patterns in the training data. Typically, dropout
 is disabled at test time. When evaluating a trained model with a new example, we
 do not drop out any nodes and thus do not need to normalize.
 
@@ -373,7 +438,7 @@ parameters.
 \subsubsection{Modern CNN Architectures}
 Modern \gls{cnn} architectures have significantly enhanced computer vision applications, enabling 
 highly effective feature extraction and classification in complex image analysis tasks, including 
-fire risk assessment. By leveraging well-established architectures, we can build a robust model 
+housing fire risk assessment. By leveraging well-established architectures, we can build a robust model 
 without designing a new network from scratch.
 
 Some of the most widely used CNN models include ResNet \cite{he2016deep}, DenseNet \cite{huang2017densely}, 
@@ -381,13 +446,13 @@ Inception \cite{szegedy2015going}, and EfficientNet \cite{efficientnet}. These a
 various optimizations, such as deeper network designs, residual connections, and parameter efficiency, 
 which enhance feature learning and improve classification performance.
 
-For fire risk classification, selecting an appropriate CNN model involves balancing accuracy, computational 
+For housing fire risk classification, selecting an appropriate CNN model involves balancing accuracy, computational 
 efficiency, and generalization ability. Given the complexity of aerial imagery and the need for robust 
 feature extraction, we incorporate CNN architectures that have demonstrated strong performance in 
 remote sensing and classification tasks.
 
 Rather than employing image segmentation techniques, which require extensive labeled data, we focus 
-on leveraging CNNs for direct fire risk classification. This allows us to maximize the predictive 
+on leveraging CNNs for direct housing fire risk classification. This allows us to maximize the predictive 
 capabilities of our dataset while avoiding the challenges associated with segmentation-based approaches.
 
 
@@ -417,142 +482,6 @@ achieving state-of-the-art results in various domains, including image classific
 detection, and natural language processing.
 
 
-\subsection{Autoencoders}
-
-Autoencoders are a type of artificial neural network used for unsupervised learning
-of efficient codings. The primary goal of an autoencoder is to learn a representation
-(encoding) for a set of data, typically for the purpose of dimensionality reduction. An
-autoencoder consists of two main components: the encoder and the decoder \cite{goodfellow2016deep}.
-
-The encoder compresses the input into a latent-space representation, which is a
-lower-dimensional space that captures the essential features of the input data.
-This latent space can be thought of as a bottleneck where only the most important
-aspects of the data are retained. The process of encoding can be formulated as:
-\begin{equation}
-    h = f (W \cdot x + b)
-    \label{eq:enconding}
-\end{equation}
-where \(h \in \mathbb{R}^n\) is the output of the hidden layers, \(f\) denotes a
-nonlinear mapping, \(W \in \mathbb{R}^{n \times m}\) stands for the encoding weight
-matrix, \(x \in \mathbb{R}^m\) denotes the input of the autoencoder, and \(b \in \mathbb{R}^n\)
-is the bias vector \cite{cheng2020remote}.
-
-The decoder then attempts to reconstruct the original input data from this compressed
-representation. The decoding process is the inverse of encoding and can be formulated as:
-\begin{equation}
-    \tilde{x} = f (W' \cdot h + b')
-    \label{eq:decoding}
-\end{equation}
-where \(\tilde{x} \in \mathbb{R}^m\) represents the reconstructed output,
-\(W' \in \mathbb{R}^{m \times n}\) is the decoding weight matrix, and \(b' \in \mathbb{R}^m\)
-stands for the bias vector. The network is trained to minimize the difference between the
-input data and the reconstructed output, often using a loss function such as mean squared
-error. Through this process, the autoencoder learns to extract the most significant
-features of the input data.
-
-Autoencoders have wide-ranging applications, including anomaly detection, data compression,
-image processing, and feature extraction. They are a powerful tool enabling the discovery
-of meaningful patterns and structures within data without the need for labeled examples.
-
-\subsection{Generative Adversarial Networks}
-
-\gls{gan} are a powerful and innovative approach in the
-field of machine learning, particularly for generating realistic data. \gls{gan} consist of
-two neural networks, the generator (G) and the discriminator (D), which are trained
-simultaneously through a process known as adversarial training as seen in Figure \ref{fig:gan}.
-
-The generator's role is to create synthetic data that resembles real data, while the
-discriminator's job is to distinguish between real and synthetic data.
-Over time, both networks improve in their respective tasks, leading to the generation
-of highly realistic data by the generator.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{../Figures/GAN-ARCH.png}
-    \caption{Illustration of GAN architecture with Generator (G) and Discriminator (D) from \cite{app12147075}.}
-    \label{fig:gan}
-\end{figure}
-
-The generator takes a random noise vector \(z\) from a prior distribution \(p_z(z)\) and
-transforms it into data samples \(G(z; \theta_g)\), where \(\theta_g\) represents the
-parameters of the generator. The discriminator, on the other hand, evaluates these
-generated samples along with real samples from the true data distribution \(p_{data}(x)\) and
-outputs a probability \(D(x; \theta_d)\) that the input is a real data sample, with
-\(\theta_d\) representing the parameters of the discriminator.
-
-The training of \gls{gan} involves a minimax game with the following objective function:
-
-\begin{equation}
-    \min_G \max_D V(G, D) = \mathbb{E}_{x \sim p_{data}(x)}[\log D(x)] + \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))]
-\end{equation}
-
-Here, the discriminator \(D\) aims to maximize the probability of correctly identifying
-real and fake samples, while the generator \(G\) aims to minimize the discriminator's
-ability to distinguish between the two \cite{NIPS2014_5ca3e9b1}. This adversarial process continues until the
-discriminator cannot differentiate between real and synthetic data with better than random
-guessing accuracy.
-
-\gls{gan} have been successfully applied in various fields, such as image generation,
-style transfer, and data augmentation. Despite their success, training them can be
-challenging due to issues like mode collapse and instability.
-
-They have opened new possibilities for
-generating high-quality synthetic data that closely mimics real-world data, making them
-a significant tool in the arsenal of modern machine learning methods.
-
-
-\subsection{Loss Functions}
-Loss functions measure the difference between predicted and actual values during model training.
-They play a crucial role in guiding the optimization process toward improving model accuracy and 
-generalization. The choice of an appropriate loss function depends on the nature of the task, 
-whether it involves regression or binary classification. This section explores key loss 
-functions commonly used in deep learning.
-
-\subsubsection{Mean Squared Error (MSE)}
-Mean Squared Error is widely used for regression tasks. It calculates the average of the squared 
-differences between predicted and actual values \cite{goodfellow2016deep}:
-
-\begin{equation}
-    \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
-    \label{eq:mse}
-\end{equation}
-
-where \( y_i \) is the actual value and \( \hat{y}_i \) is the predicted value. MSE is 
-sensitive to outliers due to the squaring term, making large errors more significant.
-
-\subsubsection{Binary Cross-Entropy (BCE) Loss}
-Binary Cross-Entropy (BCE) is a standard loss function for binary classification, 
-measuring the difference between predicted and actual class probabilities \cite{murphy2012machine}. 
-It is defined as:
-
-\begin{equation}
-    \text{BCE} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
-    \label{eq:bce}
-\end{equation}
-
-where \( y_i \) is the true label (0 or 1), and \( \hat{y}_i \) is the predicted probability. 
-A lower BCE value indicates a better prediction. BCE is widely used in neural networks where 
-outputs represent probabilities.
-
-\subsubsection{BCEWithLogitsLoss}
-BCEWithLogitsLoss is a numerically stable variation of Binary Cross-Entropy that integrates 
-the sigmoid activation function directly into the loss computation \cite{kingma2015adam}:
-
-\begin{equation}
-    \text{BCEWithLogitsLoss} = -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\sigma(z_i)) + (1 - y_i) \log(1 - \sigma(z_i))]
-    \label{eq:bce-logits}
-\end{equation}
-
-where \( z_i \) is the raw model output (logits), and \( \sigma(z_i) \) is the sigmoid function:
-
-\begin{equation}
-    \sigma(z) = \frac{1}{1 + e^{-z}}
-\end{equation}
-
-Unlike standard BCE, which requires applying a sigmoid activation function to model outputs, 
-BCEWithLogitsLoss computes both the activation and loss in a single step, preventing numerical 
-instabilities and gradient vanishing issues. This is particularly useful in deep learning 
-models with large-scale datasets \cite{ruder2016overview}.
 
 \subsection{Optimization Algorithms}
 
@@ -569,7 +498,6 @@ parameters in the direction that reduces the loss function:
 \begin{equation}
     \theta = \theta - \eta \nabla_\theta J(\theta)
 \end{equation}
-
 where \( \theta \) represents the model parameters, \( \eta \) is the learning rate, 
 and \( \nabla_\theta J(\theta) \) is the gradient of the loss function.  
 
@@ -588,11 +516,10 @@ and sparse gradients, making it widely used for deep learning:
 \begin{equation}
     \theta_t = \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
 \end{equation}
-
 where \( \hat{m}_t \) and \( \hat{v}_t \) are bias-corrected estimates of the mean 
 and uncentered variance of gradients, respectively. While Adam is computationally 
-efficient and robust, one limitation is that its weight decay is applied incorrectly, 
-leading to potential overfitting \cite{loshchilov2019decoupled}.
+efficient and robust, one limitation is the incorrect application of weight decay, 
+which may lead to potential overfitting \cite{loshchilov2019decoupled}.
 
 \subsubsection{AdamW: Decoupled Weight Decay}
 
@@ -611,6 +538,23 @@ achieves superior performance on deep neural networks, particularly when trainin
 models with high-capacity architectures like ResNet and EfficientNet \cite{loshchilov2019decoupled}.
 
 
+\subsection{Alternative Architectures: Autoencoders and GANs}
+
+While this work centers on supervised learning using convolutional neural networks, other deep learning architectures such as Autoencoders and Generative Adversarial Networks (GANs) are widely used in related domains, particularly in remote sensing and image synthesis.
+
+\textbf{Autoencoders} are a class of unsupervised neural networks designed to learn compressed representations of input data. They consist of two main components: an encoder that maps the input into a lower-dimensional latent space, and a decoder that reconstructs the original input from this representation. Autoencoders are commonly used for dimensionality reduction, feature extraction, and anomaly detection \cite{goodfellow2016deep}. Training typically involves minimizing the reconstruction loss, such as mean squared error, between the input and its reconstruction.
+
+\textbf{Generative Adversarial Networks (GANs)} consist of two neural networks, 
+the generator and the discriminator seen in \ref{fig:gan}, that are trained 
+simultaneously in a game-theoretic setting \cite{NIPS2014_5ca3e9b1}. The generator creates synthetic data samples, while the discriminator attempts to distinguish between real and generated data. Through this adversarial process, the generator learns to produce increasingly realistic data. GANs have found widespread use in image generation, data augmentation, and style transfer.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/GAN-ARCH.png}
+    \caption{Illustration of GAN architecture with Generator (G) and Discriminator (D) from \cite{app12147075}.}
+    \label{fig:gan}
+\end{figure}
+
 
 \section{Fundamentals of Aerial Photographs: RGB and IRG}
 There are several types of images used in remote sensing, each capturing different
@@ -626,13 +570,7 @@ as color and texture.
 
 \subsection{IRG Images}
 \gls{irg} images are a type of false-color composite that combines the green,
-red, and near-infrared (NIR) bands of the electromagnetic spectrum \ref{fig:spectrum-example}. In \gls{irg} images, the NIR
-band is assigned to the red channel, the green band to the green channel, and the red band
-to the blue channel. This false-color combination is particularly advantageous for vegetation
-analysis because plants reflect a significant amount of infrared light, which is not visible
-to the human eye but can be detected by sensors. The infrared reflectance is a key indicator
-of plant health and vigor, as healthy vegetation reflects more infrared light compared to
-stressed or unhealthy plants.
+red, and near-infrared (NIR) bands of the electromagnetic spectrum \ref{fig:spectrum-example}. 
 
 \begin{figure}[ht]
     \centering
@@ -640,6 +578,14 @@ stressed or unhealthy plants.
     \caption{Electromagnetic spectrum from \cite{nir_spectroscopy_nutshell}.}
     \label{fig:spectrum-example}
 \end{figure}
+
+In \gls{irg} images, the NIR
+band is assigned to the red channel, the green band to the green channel, and the red band
+to the blue channel. This false-color combination is particularly advantageous for vegetation
+analysis because plants reflect a significant amount of infrared light, which is not visible
+to the human eye but can be detected by sensors. The infrared reflectance is a key indicator
+of plant health and vigor, as healthy vegetation reflects more infrared light compared to
+stressed or unhealthy plants.
 
 The benefits of the \gls{irg} image for vegetation analysis are due to several technical reasons:
 
