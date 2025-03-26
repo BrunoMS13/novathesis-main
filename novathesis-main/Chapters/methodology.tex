@@ -178,7 +178,7 @@ resulting in poor performance on underrepresented labels like Low and Moderate.
 
 To mitigate the effects of both interclass ambiguity and imbalance, the original 
 five fire risk levels were consolidated into two broader categories: 
-\textit{Managed Fuels} (Low, Moderate, High) and \textit{Non-Managed Fuels} 
+\textit{Vegetation Managed} (Low, Moderate, High) and \textit{Vegetation Not Managed} 
 (Very High, Extreme). This restructuring yielded a more balanced dataset, 1016 and 
 914 samples per class, respectively, while preserving meaningful distinctions 
 relevant to fire risk. Although this binary classification reduces granularity, 
@@ -448,57 +448,59 @@ accessible and widely available source of imagery. In many real-world scenarios,
 availability. Therefore, this model serves as a baseline to evaluate how well fire risk 
 can be classified using only standard \gls{rgb} imagery.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../Figures/EnsembleRGBOnly.drawio.pdf}
+    \caption{RGB-based ensemble model combining DenseNet-161, ResNet-50, and EfficientNet-B5.}
+    \label{fig:rgb_ensemble}
+\end{figure}
+
 In this approach, \gls{rgb} images are processed through three different pre-trained architectures: 
 DenseNet-161, ResNet-50, and EfficientNet-B5. The predictions from these models are then 
 merged to produce the final classification result.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth]{../Figures/EnsembleRGBOnly.drawio.pdf}
-    \caption{\gls{rgb}-based ensemble model combining DenseNet-161, ResNet-50, and EfficientNet-B5.}
-    \label{fig:rgb_ensemble}
-\end{figure}
 
 \subsection{Multi-Input Ensemble}
 
-The second ensemble model, shown in Figure \ref{fig:multi_input_ensemble}, was designed 
-to incorporate multiple input types and leverage additional spectral information. 
-This approach considers three different input types: \gls{rgb} images, \gls{irg} 
-images, and \gls{rgb} + \gls{ndvi} images.
 
-The \gls{rgb} and \gls{irg} inputs were processed separately through DenseNet-161, 
-ResNet-50, and EfficientNet-B5. To incorporate \gls{ndvi} information, the \gls{irg} 
-images were used to extract the \gls{ndvi} channel, which was then combined with \gls{rgb} 
-to create an additional \gls{rgb} + \gls{ndvi} input. This third input was processed 
-through the same three architectures.
+Although each individual model is trained on a single input type, the term \textit{Multi-Input Ensemble}
+refers to the combination of models trained on diverse the inputs, \gls{rgb}, \gls{irg}, and \gls{rgb} + \gls{ndvi}. 
+Rather than fusing these inputs at the model level, this approach makes use of their complementary spectral 
+information during the ensemble stage.
+
+Each input type is processed independently through three CNN architectures, DenseNet-161, ResNet-50, 
+and EfficientNet-B5, resulting in a total of nine models. The ensemble aggregates their predictions 
+to improve classification robustness across different vegetation conditions.
 
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{../Figures/EnsembleNDVI.png}
-    \caption{Multi-input ensemble model combining \gls{rgb}, \gls{irg}, and \gls{rgb} + \gls{ndvi} inputs.}
+    \includegraphics[width=0.7\textwidth]{../Figures/EnsembleNDVI.png}
+    \caption{Multi-input ensemble model combining RGB, IRG, and RGB+NDVI inputs.}
     \label{fig:multi_input_ensemble}
 \end{figure}
 
 
 \subsection{Ensemble Merging Strategy and Evaluation}
 
-To aggregate predictions from the individual models, a majority voting strategy was
-employed. Each network independently produced a classification output, and the final
-decision was determined based on the most frequently predicted class. This method
-ensures that no single model dominates the final prediction and leverages the collective
-decision-making power of multiple architectures.
+To aggregate predictions from the different model branches within the ensemble, 
+a majority voting strategy was employed. Each branch corresponds to a unique 
+combination of input type (e.g., RGB, IRG, RGB+NDVI) and model architecture 
+(DenseNet-161, ResNet-50, or EfficientNet-B5). Each of these branches 
+independently produces a classification output, and the final ensemble 
+decision is made based on the most frequently predicted class among them.
 
-Majority voting was chosen over probability-based soft voting because it reduces the
-influence of individual model biases and works well when all models perform at a similar
-level. Additionally, given the binary nature of the housing fire risk classification task, majority
-voting provided clear and stable results. 
+Majority voting was chosen over probability-based soft voting to reduce the 
+influence of any single model's calibration or bias. This hard-voting method 
+is particularly effective in binary classification settings where individual 
+models have comparable performance, offering a simple yet robust decision 
+fusion strategy.
 
-By implementing these ensemble strategies, the goal was to assess whether incorporating 
-additional spectral information improves classification performance and to determine
-how well fire risk can be predicted using only RGB imagery. This comparison is particularly 
-important for real-world applications, where access to multi-spectral data may be
-limited.
+By implementing these ensemble strategies, the goal was to assess whether 
+incorporating additional spectral information (like NIR or NDVI) improves 
+classification performance, and to determine how well fire risk can be predicted 
+using only RGB imagery. This comparison is particularly relevant for real-world 
+applications, where access to multi-spectral data may be limited.
 
 \subsubsection{Ensemble Performance Metrics}
 
@@ -524,3 +526,17 @@ By investigating these cases, we aim to identify whether the errors stem from sy
 biases, limitations in the available features, or inaccuracies in the ground truth labels. 
 Understanding these misclassifications helps refine both the dataset and the models, ensuring 
 a more reliable and interpretable housing fire risk classification system.
+
+\section{Methodology Overview Diagram}
+
+To summarize the entire methodological process, Figure \ref{fig:methodology_pipeline} 
+presents a visual overview of the pipeline developed in this study. It highlights the 
+sequence from data acquisition and preprocessing through to model training, ensemble design, 
+and final fire risk predictions.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[height=0.8\textheight]{../Figures/MethDiagram.pdf}
+    \caption{End-to-end pipeline for housing fire risk classification using deep learning.}
+    \label{fig:methodology_pipeline}
+\end{figure}

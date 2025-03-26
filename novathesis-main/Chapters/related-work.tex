@@ -2,9 +2,10 @@
 \label{cha:related-work}
 
 
-Classifying housing fire risk using remote sensing imagery presents unique 
-challenges, including environmental variability, fine-grained spatial features, 
-and high interclass similarity. Deep learning, particularly convolutional neural
+Classifying housing-level fire risk from aerial imagery is challenging due to small 
+interclass vegetation differences, fine spatial resolution requirements, and 
+high environmental variability, such as seasonal or regional changes. 
+Deep learning, particularly convolutional neural
 networks (CNNs), has demonstrated strong potential in extracting semantic 
 features from complex visual data, making it highly suitable for this domain. 
 
@@ -17,18 +18,14 @@ classification robustness in high-resolution, complex datasets.
 \section{Deep CNN Architectures}
 \subsection{ResNet-50 Architecture}
 
+ResNet-50 \cite{he2016deep} is a deep convolutional neural network known for its 
+introduction of residual learning, which allows the model to learn residual functions 
+rather than direct mappings. This helps avoid the vanishing gradient problem and enables 
+stable training of very deep networks.
 
-ResNet-50 \cite{he2016deep} is a deep convolutional neural network from the ResNet family, 
-which introduced residual learning to significantly enhance gradient propagation 
-in deep architectures. The key innovation in ResNet models is the use of residual 
-connections, which allow the network to learn residual functions rather than direct 
-mappings. This mitigates the vanishing gradient problem and enables the training of 
-very deep networks.
-
-ResNet-50 consists of 50 layers, primarily composed of residual blocks. Each residual 
-block incorporates identity shortcuts that bypass multiple convolutional layers, 
-facilitating gradient flow and allowing for deeper feature learning without the risk of 
-accuracy degradation.
+The architecture contains 50 layers, composed of residual blocks with identity shortcuts 
+that bypass several convolutional layers. These shortcut connections improve gradient 
+flow and feature reuse, which supports deeper and more accurate feature learning.
 
 \begin{figure}[h]
     \centering
@@ -37,18 +34,11 @@ accuracy degradation.
     \label{fig:resnet_block}
 \end{figure}
 
-The architecture follows a structured layout, beginning with an initial convolutional 
-layer followed by multiple residual blocks. Each residual block as seen in Figure \ref{fig:resnet_block}
-consists of a bottleneck 
-structure with three convolutional layers: a $1 \times 1$ convolution for dimensionality 
-reduction, a $3 \times 3$ convolution for feature extraction, and another $1 \times 1$ 
-convolution for dimensionality restoration. Shortcut connections then add the original 
-input back to the transformed output, improving feature reuse and enabling efficient 
-deep learning.
-
-The model takes an input of size $224 \times 224 \times 3$ and progressively reduces 
-spatial dimensions while increasing feature depth. A final global average pooling 
-layer extracts high-level features before passing them to a fully connected layer for classification.
+Each residual block follows a bottleneck structure with three convolutional layers: 
+a $1 \times 1$ layer for dimensionality reduction, a $3 \times 3$ layer for feature extraction, 
+and a final $1 \times 1$ layer for restoring dimensions. The overall architecture begins with an 
+initial convolution and pooling layer, followed by four residual stages and a global average 
+pooling layer before classification.
 
 \begin{table}[ht]
     \centering
@@ -73,30 +63,20 @@ layer extracts high-level features before passing them to a fully connected laye
 \end{table}
 
 
-A major advantage of ResNet-50 is its ability to train deep models efficiently 
-without suffering from performance degradation. The residual connections enable 
-stable gradient flow, reducing the risk of vanishing gradients and improving 
-convergence speed. These properties make ResNet-50 particularly effective for 
-large-scale image classification tasks.
-
-Additionally, ResNet-50 incorporates batch normalization and ReLU activation to enhance 
-training stability and efficiency. Its hierarchical structure captures increasingly 
-complex patterns with depth, making it well-suited for high-resolution image analysis.
-
-ResNet-50 has demonstrated strong performance on benchmark datasets such as 
-ImageNet and has become a standard architecture in deep learning applications. 
-Its combination of depth, residual learning, and efficient feature extraction 
-makes it a powerful model for image classification, object detection, and other 
-computer vision tasks.
+ResNet-50 includes batch normalization and ReLU activations to improve training stability. 
+Its depth and ability to preserve spatial detail make it well-suited for high-resolution 
+classification tasks, such as distinguishing vegetation patterns around individual houses. 
+Its strong generalization performance has made it a popular choice for image classification 
+across domains, including remote sensing.
 
 
 \subsection{DenseNet-161 Architecture}
 
-DenseNet-161 \cite{huang2017densely} is a deep convolutional neural network from the DenseNet family, 
-designed to optimize feature reuse and improve information flow between layers. 
-The core principle of DenseNet is dense connectivity, where each layer receives 
-input from all preceding layers, ensuring more effective gradient propagation 
-and reducing feature redundancy.
+DenseNet-161 \cite{huang2017densely} is a deep convolutional neural network designed 
+to improve gradient flow and feature reuse through dense connectivity. In this architecture, 
+each layer receives input from all preceding layers, helping to mitigate vanishing 
+gradients and reduce redundancy.
+
 
 \begin{figure}[ht]
     \centering
@@ -105,26 +85,15 @@ and reducing feature redundancy.
     \label{fig:densenet_block}
 \end{figure}
 
-A defining characteristic of DenseNet-161 is the use of dense blocks, each 
-consisting of multiple convolutional layers that share information through 
-direct connections, as illustrated in Fig. \ref{fig:densenet_block}. These dense 
-connections alleviate the vanishing gradient problem and enable the model to 
-achieve high accuracy with fewer parameters compared to traditional deep architectures. 
-Between these dense blocks, transition layers are used to control feature map growth, 
-reducing computational cost while maintaining effective feature extraction.
+The model is structured around four dense blocks, each consisting of multiple 
+convolutional layers that share feature maps via direct connections (Fig.\ref{fig:densenet_block}). 
+Transition layers between blocks use $1 \times 1$ convolutions and pooling to control 
+feature map growth and reduce memory usage.
 
-DenseNet-161 follows a structured layout, beginning with an initial convolutional 
-layer followed by four dense blocks. Each dense block consists of multiple layers 
-applying $3 \times 3$ convolutions with batch normalization and ReLU activation. 
-Within a dense block, each layer concatenates its feature maps with those of all 
-preceding layers, increasing the model's representational capacity. Between the 
-dense blocks, transition layers with $1 \times 1$ convolutions and average pooling 
-help control dimensionality and prevent excessive memory consumption.
+DenseNet-161 takes an input of $224 \times 224 \times 3$ and progressively compresses spatial 
+dimensions while increasing feature depth. Final predictions are made using global average 
+pooling followed by a fully connected layer.
 
-The model takes an input of size $224 \times 224 \times 3$ and progressively 
-reduces spatial dimensions while increasing feature depth. The final global 
-average pooling layer extracts high-level features, which are then passed to 
-a fully connected classification layer.
 
 \begin{table}[ht]
     \centering
@@ -151,64 +120,35 @@ a fully connected classification layer.
     \label{tab:densenet_layers}
 \end{table}
 
-One of DenseNet-161's key advantages is its efficient parameter utilization. 
-Unlike traditional deep networks, which may contain redundant parameters, DenseNet 
-maximizes feature reuse through its densely connected layers, leading to improved
-accuracy with fewer parameters. This makes it particularly effective for applications 
-requiring robust feature extraction with limited computational resources.
+A key advantage of DenseNet-161 is its efficient use of parameters, as it reuses 
+features extensively rather than learning redundant representations. This makes it 
+suitable for tasks with limited training data or fine-grained visual variation, 
+such as distinguishing vegetation structure in aerial imagery.
 
-Additionally, DenseNet-161 incorporates residual-like connections without summation, 
-preserving fine-grained information across layers. The inclusion of transition layers 
-ensures that the number of feature maps does not grow excessively, keeping computational 
-costs manageable while maintaining high representational capacity.
-
-Due to its strong performance on benchmark datasets such as ImageNet, DenseNet-161 
-has been widely adopted in image classification tasks. Its dense connectivity, batch 
-normalization, and efficient pooling mechanisms make it well-suited for tasks that 
-require deep feature learning. In this study, we leverage DenseNet-161's strengths 
-to enhance housing fire risk classification, capitalizing on its superior feature extraction 
-capabilities to improve predictive performance.
-
+In this study, DenseNet-161 is used for its strong feature extraction capabilities 
+and ability to preserve spatial detail across layers, both critical for accurate 
+vegetation-based housing fire risk classification.
 
 
 \subsection{EfficientNet-B5 Architecture}
 
-EfficientNet-B5 \cite{efficientnet} is a deep convolutional neural network from the EfficientNet family, 
-designed to achieve high accuracy while maintaining computational efficiency. Unlike 
-traditional deep networks that scale depth, width, or resolution independently, 
-EfficientNet models employ compound scaling, which balances these three factors proportionally. 
-This results in a more optimized architecture that improves accuracy without a 
-significant increase in computational cost.
+EfficientNet-B5 \cite{efficientnet} is a convolutional neural network that 
+achieves high accuracy with relatively low computational cost through compound 
+scaling. Unlike traditional models that scale depth, width, or input resolution 
+independently, EfficientNet scales all three dimensions in a balanced way, 
+resulting in more efficient architectures.
 
-The core principle behind compound scaling is that increasing the network's depth 
-(number of layers), width (number of channels per layer), and resolution (input image size) 
-together leads to more efficient model scaling compared to arbitrarily increasing one 
-of these dimensions. EfficientNet-B5 follows this principle by scaling up EfficientNet-B0 
-using pre-determined coefficients, resulting in a larger, more accurate model with a 
-manageable computational requirement.
+EfficientNet-B5 builds on EfficientNet-B0 using predefined scaling coefficients 
+to increase model size and accuracy while maintaining manageable resource demands.
 
+The architecture uses Mobile Inverted Bottleneck Convolution (MBConv) blocks, 
+originally introduced in MobileNetV2 \cite{mobilenetv2}, which 
+combine depthwise separable convolutions with lightweight residual connections. 
+EfficientNet further incorporates Squeeze-and-Excitation (SE) blocks \cite{hu2018squeeze} to 
+adaptively recalibrate channel-wise features, and adopts the Swish activation function 
+\cite{ramachandran2017searching} to improve gradient flow during training. These components 
+collectively allow the model to achieve strong feature extraction performance while keeping parameter counts low.
 
-EfficientNet-B5 utilizes Mobile Inverted Bottleneck Convolution (MBConv) blocks, 
-originally introduced in MobileNetV2 \cite{mobilenetv2}. These blocks employ depthwise separable 
-convolutions, reducing the number of parameters while preserving feature extraction 
-efficiency. Each MBConv block consists of:
-\begin{itemize}
-    \item An expansion phase to increase dimensionality,
-    \item A depthwise convolution for spatial feature extraction,
-    \item A projection phase to reduce dimensionality while maintaining essential information.
-\end{itemize}
-Additionally, squeeze-and-excitation (SE) blocks are integrated into each MBConv block, 
-enabling the network to adaptively recalibrate feature maps by learning channel-wise attention.
-
-The network begins with a standard convolutional layer, followed by multiple MBConv 
-blocks, progressively increasing feature depth while reducing spatial resolution. The 
-final layers consist of a global average pooling operation followed by a fully 
-connected classification layer.
-
-Table \ref{tab:efficientnet_layers} outlines the layer-wise structure of EfficientNet-B5,
-detailing the key operations at each stage of the network. The columns represent the specific 
-stage, type of operator used, input resolution at that stage, number of output channels, 
-and the number of times the operation is repeated.
 
 \begin{table}[ht]
     \centering
@@ -235,27 +175,44 @@ and the number of times the operation is repeated.
     \label{tab:efficientnet_layers}
 \end{table}
 
-One of the key advantages of EfficientNet-B5 is its ability to achieve high accuracy 
-while maintaining computational efficiency. Unlike traditional deep networks, which 
-often increase parameters disproportionately, EfficientNet achieves state-of-the-art 
-performance on benchmark datasets with significantly fewer parameters and FLOPs.
+EfficientNet-B5 also incorporates Swish activations and batch normalization to enhance 
+training dynamics. Its high-resolution input size ($456 \times 456$) enables better 
+feature extraction in visually detailed imagery.
 
-Additionally, EfficientNet-B5 incorporates the following:
-\begin{itemize}
-    \item Swish activation functions to improve gradient flow,
-    \item Batch normalization for enhanced training stability,
-    \item Squeeze-and-excitation (SE) blocks for adaptive feature recalibration.
-\end{itemize}
-These enhancements enable EfficientNet-B5 to achieve superior accuracy on higher resolution 
-images ($456 \times 456$), leading to better feature extraction for fine-grained classification tasks.
+Due to its balance of accuracy and efficiency, EfficientNet-B5 has shown competitive 
+results on benchmark datasets like ImageNet. In this study, it serves as a modern, 
+high-capacity model particularly well-suited for handling the fine-grained vegetation 
+textures found in house-level fire risk classification.
 
-EfficientNet-B5 has consistently outperformed many traditional deep networks on ImageNet 
-and other large-scale classification benchmarks, demonstrating its effectiveness in real-world 
-applications. Its combination of depthwise separable convolutions, squeeze-and-excitation blocks, 
-and compound scaling makes it one of the most efficient architectures for high-accuracy 
-image classification. These properties make EfficientNet-B5 a strong candidate for fire 
-risk classification, as it balances computational efficiency with strong feature extraction 
-capabilities.
+\subsection{Model Selection Rationale}
+
+These three models were chosen to offer a good mix of depth, architecture type, and performance 
+efficiency. ResNet-50 is a reliable baseline with strong generalization thanks to its residual 
+connections. DenseNet-161 was included because of its feature reuse and ability to work well 
+with limited data. EfficientNet-B5 adds a more modern, scalable approach that balances accuracy 
+with computational cost. Together, they cover different designs and strenghts for the ensemble 
+approach used in this study.
+
+\begin{table}[ht]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{10pt}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Model} & \textbf{Parameters (Millions)} & \textbf{Input Size} & \textbf{Key Feature} \\
+        \midrule
+        ResNet-50      & 25.6M & $224 \times 224$ & Residual connections \\
+        DenseNet-161   & 28.7M & $224 \times 224$ & Dense feature reuse \\
+        EfficientNet-B5 & 30.0M & $456 \times 456$ & Compound scaling \\
+        \bottomrule
+    \end{tabular}
+    \caption{Comparison of the selected CNN architectures used in this study.}
+    \label{tab:model_comparison_params}
+\end{table}
+
+As shown in Table \ref{tab:model_comparison_params}, all three models have a comparable number 
+of parameters, making them suitable for fair comparison in both performance and computational 
+load. Each brings a distinct architectural feature that complements the others in an ensemble setting.
 
 
 \section{CNNs in Remote Sensing Applications}

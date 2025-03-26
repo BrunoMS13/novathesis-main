@@ -5,11 +5,14 @@
 
 \section{Motivation}
 
-The increasing frequency and severity of wildfires, exacerbated by climate change, 
+The increasing frequency and severity of wildfires, aggravated by climate change, 
 pose a growing threat to ecosystems, properties, and human lives, particularly in 
-wildland-urban interface areas \cite{unep2022wildfires}. Effective wildfire 
-mitigation requires proactive risk assessment and management strategies, 
-particularly in fire-prone regions such as Portugal.
+wildland-urban interface areas \cite{unep2022wildfires}. In Portugal, wildfires have burned 
+over 3 million hectares between 1980 and 2018, roughly one-third of the country's area,
+with a concerning rise in fire events in recent years \cite{jrc2020wildfire}. For instance, 
+in 2022 alone, more than 110,000 hectares were scorched across 10,449 fires \cite{mdpi2023fire}, 
+and the 2024 fire season saw over 135,000 hectares burned, resulting in nine fatalities 
+and the evacuation of thousands \cite{wiki2024ptfires}.
 
 In response, Portugal has implemented strict vegetation management regulations 
 to reduce fire hazards around residential areas. Decree-Law 124/2006 \cite{portugal2006}, 
@@ -25,13 +28,16 @@ between tree canopies, summarized in Figure \ref{fig:veg-man}.
     \label{fig:veg-man}
 \end{figure}
 
-Traditional fire risk assessment methods rely on manual field surveys, which are 
-labor-intensive, time-consuming, and susceptible to human error. Machine learning, 
-particularly deep learning, offers a scalable and automated alternative by analyzing 
-aerial imagery to classify vegetation risk levels. These technologies enable 
-authorities to efficiently assess fire risks, enforce fuel management regulations, 
-and adapt to landscape changes in real time, ultimately enhancing wildfire resilience 
-and protecting communities.
+In practice, housing fire risk assessments often depend on extensive manual fieldwork, making them resource-intensive and inconsistent.
+While some recent studies have explored the use of satellite imagery and machine learning for wildfire 
+prediction, the majority focus on a broad landscape-level. 
+There is a notable lack of approaches targeting house-level risk classification, 
+particularly those incorporating high-resolution aerial orthophotos and vegetation-specific spectral indices.
+
+We found no prior work targeting this specific scale with use of multi-spectral aerial data. This research aims to fill that gap by 
+developing a novel classification framework that leverages multi-spectral aerial imagery and ensemble 
+learning to automate the assessment of vegetation-related fire risk around isolated residential structures.
+
 
 \section{Background}
 
@@ -41,47 +47,47 @@ evaluate vegetation-related fire risk \cite{almeida2020analise}. Houses were sel
 based on areas burned between 2016 and 2020, using data from the ICNF (Instituto de 
 Conservação da Natureza e das Florestas), ensuring a geographically balanced sample.
 
-Fire risk classification in this study focused on vegetation within a 50-meter 
-radius of each house, using satellite imagery from 2018-2020. The assessment 
-categorized natural fuels into spontaneous vegetation (wildland growth) and 
-non-spontaneous vegetation (human-maintained areas like gardens or agricultural plots), 
-further classifying vegetation into arboreal, shrub, and herbaceous types.
-
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=1\textwidth]{../Figures/FireRiskClassificationTable.png}
-    \caption{Fire risk classification based on vegetation characteristics, adapted from \cite{almeida2020analise}.}
+    \includegraphics[width=0.9\textwidth]{../Figures/FireRiskClassificationTable.png}
+    \caption{Housing fire risk classification based on vegetation characteristics, adapted from \cite{almeida2020analise}.}
     \label{fig:fire-risk-table}
 \end{figure}
 
-The classification system defines five risk levels: low, moderate, high, very high, 
-and extreme, based on vegetation type and its proximity to the structure. Only vegetation 
-capable of sustaining and propagating fire was considered, meaning well-maintained, 
-irrigated lawns were excluded from the analysis.
 
+The classification system defines five fire risk levels: low, moderate, high, very high, 
+and extreme. These levels are determined based on both the type of vegetation present 
+and its proximity to the residential structure. Only fuel types with sufficient density 
+and continuity to sustain and propagate fire were considered; irrigated lawns and managed 
+ornamental vegetation were excluded.
 
+The assessment focused on vegetation located within a 50-meter radius of each house, using 
+imagery captured between 2018 and 2020. Natural fuels were categorized into two main groups: 
+spontaneous vegetation (wildland growth) and non-spontaneous vegetation (human-maintained areas, such as 
+gardens or agricultural plots). These were further classified into three subtypes: arboreal, shrub, 
+and herbaceous.
 
 \section{Objectives}
 
-The primary objective of this dissertation is to develop a robust machine learning classifier 
-capable of accurately identifying vegetation risk classes near isolated residences based on 
-high-resolution aerial imagery, aligned with the fire risk classification standards 
-established by \gls{adai}. To achieve this, the study will leverage orthophotos provided 
-by \gls{dgt}, alongside labeled data from \gls{adai}, ensuring a comprehensive dataset for 
-training and evaluation.
+The goal of this dissertation is to develop a deep learning-based system for automatically classifying fire risk levels associated 
+with vegetation near isolated houses, using high-resolution aerial imagery. 
+This system will follow the housing fire risk classification framework established by \gls{adai}, focusing on 
+vegetation conditions within a 50-meter buffer around each structure.
 
-This study will explore different deep learning architectures to determine the most 
-effective approach for vegetation risk classification. A key focus is assessing the impact 
-of different spectral inputs on classification performance. Specifically, this work will:
+To support this objective, the study will make use of orthophotos provided by \gls{dgt} and ground-truth labels 
+from \gls{adai}, resulting in a labeled dataset that reflects real-world fire risk conditions with house-level detail.
+
+This work introduces several key innovations:
 \begin{itemize}
-    \item Compare the effectiveness of models trained exclusively on RGB imagery against those incorporating additional spectral data, such as IRG (Infrared-Green-Red) and NDVI (Normalized Difference Vegetation Index).
-    \item Evaluate the trade-offs between classification accuracy and computational complexity when using different architectures, such as ResNet-50, DenseNet-161, and EfficientNet-B5.
-    \item Implement and analyze an ensemble learning strategy to improve classification robustness across varying vegetation types.
+    \item It explores the integration of multi-spectral input formats, specifically RGB, IRG, and NDVI, into convolutional neural network (CNN) models for fire risk classification.
+    \item It compares the performance of multiple deep architectures, including ResNet-50, DenseNet-161, and EfficientNet-B5, each tested under different input configurations.
+    \item It implements a custom ensemble learning strategy that aggregates outputs from different models and spectral inputs to improve classification consistency across diverse vegetation settings.
 \end{itemize}
 
-By systematically comparing different spectral inputs and model architectures, this research 
-aims to provide insights into the most effective methodologies for automated fire risk 
-assessment, ultimately contributing to improved wildfire mitigation strategies.
+Model performance will be evaluated using metrics such as accuracy, precision, recall, and F1-score, with a focus 
+on correctly identifying very high and extreme risk areas. This study aims to contribute a data-driven, scalable 
+framework for automated housing-level fire risk assessment, 
+designed to assist vegetation monitoring and inform wildfire mitigation planning.
 
 
 \section{Document Structure}
@@ -89,17 +95,13 @@ assessment, ultimately contributing to improved wildfire mitigation strategies.
 This document is organized into the following chapters:
 
 \begin{itemize}
-    \item \textbf{Chapter \ref{cha:concepts}: Fundamental Concepts} - Introduces key concepts essential to this study, including machine learning, deep learning, convolutional neural networks (CNNs), optimization techniques, and loss functions. It also covers different types of aerial imagery used in the research.
+    \item \textbf{Chapter \ref{cha:concepts}: Fundamental Concepts} - Introduces foundational concepts related to this research, including supervised learning, deep learning, convolutional neural networks (CNNs), evaluation metrics, optimization techniques, and relevant aerial image formats (RGB, IRG, NDVI).
     
-    \item \textbf{Chapter \ref{cha:related-work}: Related Work} - Reviews existing literature on remote sensing image classification, with a focus on CNN-based methods and scene classification techniques relevant to fire risk assessment.
+    \item \textbf{Chapter \ref{cha:related-work}: Related Work} - Reviews prior work on remote sensing image classification, with an emphasis on CNN-based methods for scene classification. This chapter also presents the core CNN architectures adopted in this research, ResNet-50, DenseNet-161, and EfficientNet-B5, discussing their structural innovations and relevance to the housing fire risk classification task.
     
-    \item \textbf{Chapter \ref{cha:methodology}: Methodology} - Details the research methodology, including data collection, preprocessing, augmentation strategies, and model training. It also describes the experimental setup, model evaluation metrics, and the ensemble learning strategy used for improving classification performance.
+    \item \textbf{Chapter \ref{cha:methodology}: Methodology} - Describes the overall methodological pipeline in detail. This includes data collection procedures, ground truth labeling strategy, dataset challenges, preprocessing steps, augmentation techniques, and model training processes. It further elaborates on the design of custom classification layers, training strategies, and ensemble learning methods for improving classification robustness.
     
-    \item \textbf{Chapter \ref{cha:dataset-groundtruth}: Dataset and Ground Truth} - Explores the dataset and labeling approach, discussing challenges specific to fire risk classification, such as class imbalance and interclass similarity.
+    \item \textbf{Chapter \ref{cha:results}: Results} - Presents and analyzes the experimental results obtained across different architectures and input configurations (RGB, IRG, NDVI). It includes performance comparisons, ensemble results, and a discussion of misclassification patterns and their implications.
     
-    \item \textbf{Chapter \ref{cha:models-architecture}: Models and Architecture} - Presents the CNN architectures used in this study, including ResNet-50, DenseNet-161, and EfficientNet-B5. Additionally, it describes the custom classification layers and the ensemble learning approach.
-    
-    \item \textbf{Chapter \ref{cha:results}: Results} - Analyzes the performance of different models and input modalities (RGB, IRG, and NDVI), comparing individual architectures and the ensemble model. It also includes a discussion on misclassification patterns and key observations.
-    
-    \item \textbf{Chapter \ref{cha:conclusions}: Conclusions} - Summarizes the key findings, highlights the contributions of this research, and suggests potential directions for future work.
+    \item \textbf{Chapter \ref{cha:conclusions}: Conclusions} - Summarizes the major findings of the study, highlights its contributions to automated fire risk assessment, and outlines opportunities for future research in the domain of remote sensing and deep learning.
 \end{itemize}

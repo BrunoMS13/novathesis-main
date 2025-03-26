@@ -885,6 +885,45 @@ and F1 score (\textbf{81.82\%}), indicating its effectiveness in capturing spect
 configurations performed slightly worse (\textbf{81.87\%} and \textbf{81.35\%} test accuracy, respectively), 
 their close results suggest EfficientNet-B5 maintains relatively stable performance across different input configurations.
 
+\subsection{Training and Inference Time Analysis}
+
+In addition to evaluating the classification performance of each model, 
+we also assessed their computational efficiency. Specifically, we 
+measured the average training time per epoch, the total training duration, 
+and the average inference time per image. These metrics offer valuable 
+insights into the practical feasibility of each model in operational 
+environments, where time constraints may play a crucial role in deployment 
+decisions.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{12pt}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Model} & \textbf{Input Type} & \textbf{Train/Epoch (min)} & \textbf{Inference (ms/img)} \\ \midrule
+        & RGB             & XX.XX & 28.05 \\
+        ResNet-50       & IRG             & XX.XX & 27.12 \\
+        & RGB + NDVI      & XX.XX & 41.08 \\
+        
+        \midrule
+        
+        & RGB             & XX.XX & 48.41 \\
+        DenseNet-161    & IRG             & XX.XX & 49.36 \\
+        & RGB + NDVI      & XX.XX & 59.55 \\
+        
+        \midrule
+        
+        & RGB             & XX.XX & 47.85 \\
+        EfficientNet-B5 & IRG             & XX.XX & 47.83 \\
+        & RGB + NDVI      & XX.XX & 60.98 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Training and Inference Time Comparison Across Models}
+    \label{tab:training_times}
+\end{table}
+
+
 \section{Ensemble Model Results}
 
 In this section, we present the results of the ensemble models, which combine the predictions of
